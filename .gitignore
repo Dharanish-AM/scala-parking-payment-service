@@ -1,0 +1,70 @@
+# SBT
+target/
+project/target/
+project/project/target/
+dist/
+.bloop/
+.metals/
+.bsp/
+
+# Scala Worksheet
+*.sc
+.scalafmt.conf.bak
+
+# Compilation
+*.class
+*.jar
+*.log
+
+# Play Framework
+conf/play.plugins
+conf/application.conf.orig
+.play-secret
+.env
+.env.local
+
+# IDEs
+.idea/
+.vscode/
+.eclipse/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.c9/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Runtime
+tmp/
+logs/
+*.pid
+*.pid.lock
+
+# JVM
+.cache/
+.crash
+hs_err_pid*.log
+
+# Test artifacts
+test-results/
+.testdb/
+
+# Dependencies
+node_modules/
+.npm
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Temporary files
+*.tmp
+*~
