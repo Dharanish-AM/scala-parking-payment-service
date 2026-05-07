@@ -13,7 +13,7 @@ case class PaymentResponse(
   exitTime: Option[LocalDateTime],
   durationMinutes: Option[Int],
   calculatedFee: Option[BigDecimal],
-  status: PaymentStatus, 
+  status: PaymentStatus.PaymentStatus, 
   createdAt: LocalDateTime,
   updatedAt: LocalDateTime
 )
