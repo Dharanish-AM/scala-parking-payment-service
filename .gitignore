@@ -68,3 +68,6 @@ ehthumbs.db
 # Temporary files
 *.tmp
 *~
+
+# Documentation
+PROJECT.md
