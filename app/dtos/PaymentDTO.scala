@@ -1,6 +1,8 @@
 package dtos
 
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import play.api.libs.json._
 import models.PaymentStatus
 
 case class CreatePaymentRequest(
@@ -28,3 +30,16 @@ case class CalculateFeeResponse(
   fee: BigDecimal,
   breakdown: String 
 )
+
+object DateTimeFormats {
+  private val dtf: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+
+  implicit val localDateTimeReads: Reads[LocalDateTime] =
+    Reads.StringReads.map(s => LocalDateTime.parse(s, dtf))
+
+  implicit val localDateTimeWrites: Writes[LocalDateTime] =
+    Writes(dt => JsString(dtf.format(dt)))
+
+  implicit val localDateTimeFormat: Format[LocalDateTime] =
+    Format(localDateTimeReads, localDateTimeWrites)
+}

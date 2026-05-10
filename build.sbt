@@ -2,7 +2,7 @@ name := "scala-parking-payment-service"
 
 version := "1.0.0"
 
-scalaVersion := "2.13.12"
+scalaVersion := "2.13.18"
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
