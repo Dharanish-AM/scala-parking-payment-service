@@ -2,9 +2,16 @@ package tables
 
 import slick.jdbc.MySQLProfile.api._
 import java.time.LocalDateTime
+import java.sql.Timestamp
 import models.{Payment, PaymentStatus}
 
 class PaymentTable(tag: Tag) extends Table[Payment](tag, "payments") {
+  implicit val localDateTimeColumnType: BaseColumnType[LocalDateTime] =
+    MappedColumnType.base[LocalDateTime, Timestamp](
+      Timestamp.valueOf,
+      _.toLocalDateTime
+    )
+
   implicit val paymentStatusColumnType: BaseColumnType[PaymentStatus.Value] =
     MappedColumnType.base[PaymentStatus.Value, String](
       _.toString,

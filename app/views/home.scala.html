@@ -5,316 +5,1290 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Parking Payment Service — Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Parking Payment Service</title>
     <style>
-      /* Minimal resets and compact developer-friendly styles */
-      html,body { height: 100%; }
-      body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #f7f8fb; color: #0f172a; }
-      .card { background: white; border: 1px solid #e6e9ef; border-radius: 8px; }
-      .muted { color: #6b7280; }
-      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace; font-size: 13px; line-height: 1.5; }
-      .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
-      .status-success { background: #ecfdf5; color: #065f46; border: 1px solid #bbf7d0; }
-      .status-failed { background: #fff1f2; color: #9f1239; border: 1px solid #fecaca; }
-      .status-pending { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
-      .status-refunded { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
-      .action-btn { height: 40px; }
-      .disabled-action:disabled { background: #f8fafc; border-color: #e2e8f0; color: #94a3b8; opacity: 0.85; cursor: not-allowed; }
-      .flow-step { border: 1px solid #e5e7eb; background: #f9fafb; color: #6b7280; }
-      .flow-step-active { border-color: #38bdf8; background: #e0f2fe; color: #0c4a6e; font-weight: 600; }
-      .flow-step-complete { border-color: #bbf7d0; background: #ecfdf5; color: #065f46; }
-      .flow-step-failed { border-color: #fecaca; background: #fff1f2; color: #9f1239; }
-      .flow-step-refunded { border-color: #d1d5db; background: #f3f4f6; color: #374151; }
-      .flow-arrow { color: #9ca3af; font-size: 10px; line-height: 1; }
+      :root {
+        color-scheme: light;
+        --bg: #f4f7fb;
+        --bg-accent: rgba(15, 23, 42, 0.06);
+        --surface: rgba(255, 255, 255, 0.88);
+        --surface-solid: #ffffff;
+        --surface-elevated: #ffffff;
+        --border: rgba(15, 23, 42, 0.08);
+        --border-strong: rgba(15, 23, 42, 0.14);
+        --text: #0f172a;
+        --text-soft: #516075;
+        --muted: #6b7280;
+        --primary: #0f172a;
+        --primary-hover: #111c31;
+        --primary-text: #ffffff;
+        --danger: #b42318;
+        --danger-bg: rgba(180, 35, 24, 0.08);
+        --success: #166534;
+        --success-bg: rgba(22, 101, 52, 0.08);
+        --warning: #92400e;
+        --warning-bg: rgba(146, 64, 14, 0.08);
+        --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 18px rgba(15, 23, 42, 0.04);
+        --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+        --shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.14);
+        --radius-sm: 14px;
+        --radius-md: 18px;
+        --radius-lg: 24px;
+        --space-1: 4px;
+        --space-2: 8px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-5: 20px;
+        --space-6: 24px;
+        --space-8: 32px;
+        --transition: 180ms ease;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 34%),
+          radial-gradient(circle at top right, rgba(15, 23, 42, 0.06), transparent 28%),
+          linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 90%, white 10%) 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+        background-size: 36px 36px;
+        opacity: 0.55;
+        mask-image: radial-gradient(circle at center, black 40%, transparent 86%);
+      }
+
+      .app-shell {
+        position: relative;
+        width: min(1440px, calc(100% - 32px));
+        margin: 16px auto;
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius-lg) + 4px);
+        background: var(--surface);
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(18px);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: var(--space-6);
+        align-items: start;
+        margin-bottom: var(--space-6);
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: var(--space-3);
+      }
+
+      .eyebrow {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .title {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3.25rem);
+        line-height: 1.05;
+        letter-spacing: -0.04em;
+      }
+
+      .subtitle {
+        margin: 0;
+        max-width: 72ch;
+        color: var(--text-soft);
+        font-size: 1rem;
+        line-height: 1.65;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+        align-items: center;
+      }
+
+      .pill,
+      .route,
+      .status-chip,
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 36px;
+        border-radius: 999px;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.55);
+        color: var(--text-soft);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+
+      .route {
+        background: color-mix(in srgb, var(--surface-solid) 86%, transparent 14%);
+        color: var(--text-soft);
+        white-space: nowrap;
+      }
+
+      .dash-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        align-items: stretch;
+      }
+
+      .panel {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-5);
+        min-height: 100%;
+        padding: 20px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        background: linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 96%, transparent 4%) 0%, color-mix(in srgb, var(--surface-solid) 92%, transparent 8%) 100%);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition), background var(--transition);
+      }
+
+      .panel:hover {
+        transform: translateY(-2px);
+        border-color: var(--border-strong);
+        box-shadow: var(--shadow-md);
+      }
+
+      .panel::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), transparent 24%, transparent 76%, rgba(15, 23, 42, 0.04));
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition);
+      }
+
+      .panel:hover::after {
+        opacity: 1;
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .panel-copy {
+        display: grid;
+        gap: 6px;
+      }
+
+      .panel-title {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+      }
+
+      .panel-subtitle {
+        margin: 0;
+        color: var(--text-soft);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .panel-main {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+
+      .card-create {
+        grid-column: span 6;
+      }
+
+      .card-calc {
+        grid-column: span 6;
+      }
+
+      .card-actions {
+        grid-column: span 4;
+      }
+
+      .card-latest {
+        grid-column: span 8;
+      }
+
+      .card-response {
+        grid-column: span 8;
+      }
+
+      .card-shortcuts {
+        grid-column: span 4;
+      }
+
+      .field-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .field label {
+        color: var(--text-soft);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+      }
+
+      .input,
+      .date-input,
+      .numeric-input {
+        width: 100%;
+        min-height: 48px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px 14px;
+        font: inherit;
+        color: var(--text);
+        background: color-mix(in srgb, var(--surface-solid) 94%, transparent 6%);
+        box-shadow: inset 0 1px 1px rgba(15, 23, 42, 0.02);
+        transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition), background var(--transition);
+      }
+
+      .input::placeholder,
+      .numeric-input::placeholder {
+        color: var(--muted);
+      }
+
+      .input:focus,
+      .date-input:focus,
+      .numeric-input:focus,
+      .btn:focus-visible,
+      .message:focus-visible,
+      .toast:focus-visible {
+        outline: none;
+        border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.16);
+      }
+
+      .input[aria-invalid="true"],
+      .date-input[aria-invalid="true"],
+      .numeric-input[aria-invalid="true"] {
+        border-color: rgba(180, 35, 24, 0.55);
+        box-shadow: 0 0 0 4px rgba(180, 35, 24, 0.12);
+      }
+
+      .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+        align-items: center;
+      }
+
+      .action-row.stretch {
+        justify-content: stretch;
+      }
+
+      .btn {
+        min-height: 46px;
+        padding: 0 16px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: color-mix(in srgb, var(--surface-solid) 90%, transparent 10%);
+        color: var(--text);
+        font: inherit;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: transform var(--transition), background var(--transition), color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        border-color: var(--border-strong);
+        box-shadow: var(--shadow-md);
+      }
+
+      .btn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .btn:disabled {
+        cursor: wait;
+        opacity: 0.62;
+        box-shadow: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 92%, white 8%) 0%, var(--primary) 100%);
+        color: var(--primary-text);
+        border-color: transparent;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: linear-gradient(180deg, var(--primary-hover) 0%, var(--primary) 100%);
+      }
+
+      .btn-secondary {
+        background: color-mix(in srgb, var(--surface-solid) 92%, transparent 8%);
+        border-color: var(--border);
+      }
+
+      .btn-danger {
+        background: var(--danger-bg);
+        color: var(--danger);
+        border-color: color-mix(in srgb, var(--danger) 16%, transparent);
+      }
+
+      .btn-danger:hover:not(:disabled) {
+        background: color-mix(in srgb, var(--danger-bg) 72%, white 28%);
+      }
+
+      .btn-block {
+        width: 100%;
+      }
+
+      .btn-icon {
+        width: 42px;
+        min-width: 42px;
+        padding: 0;
+      }
+
+      .helper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: color-mix(in srgb, var(--surface-solid) 92%, transparent 8%);
+        color: var(--text-soft);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .helper strong {
+        color: var(--text);
+      }
+
+      .helper-icon,
+      .status-dot {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--bg-accent);
+        color: var(--text-soft);
+        font-size: 14px;
+      }
+
+      .status-dot.success {
+        background: var(--success-bg);
+        color: var(--success);
+      }
+
+      .status-dot.pending {
+        background: var(--warning-bg);
+        color: var(--warning);
+      }
+
+      .status-dot.failed {
+        background: var(--danger-bg);
+        color: var(--danger);
+      }
+
+      .message {
+        margin: 0;
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: color-mix(in srgb, var(--surface-solid) 94%, transparent 6%);
+        color: var(--text-soft);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .message.success {
+        border-color: color-mix(in srgb, var(--success) 26%, transparent);
+        background: var(--success-bg);
+        color: var(--success);
+      }
+
+      .message.error {
+        border-color: color-mix(in srgb, var(--danger) 26%, transparent);
+        background: var(--danger-bg);
+        color: var(--danger);
+      }
+
+      .message.neutral {
+        background: color-mix(in srgb, var(--surface-solid) 94%, transparent 6%);
+      }
+
+      .message-body {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      .status-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .badge.success,
+      .stat-value.success,
+      .status-chip.success {
+        background: var(--success-bg);
+        color: var(--success);
+        border-color: color-mix(in srgb, var(--success) 28%, transparent);
+      }
+
+      .badge.pending,
+      .stat-value.pending,
+      .status-chip.pending {
+        background: var(--warning-bg);
+        color: var(--warning);
+        border-color: color-mix(in srgb, var(--warning) 28%, transparent);
+      }
+
+      .badge.failed,
+      .stat-value.failed,
+      .status-chip.failed {
+        background: var(--danger-bg);
+        color: var(--danger);
+        border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+      }
+
+      .stat-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .stat-card {
+        display: grid;
+        gap: 10px;
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 96%, transparent 4%), color-mix(in srgb, var(--surface-solid) 90%, transparent 10%));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
+      }
+
+      .stat-card.large {
+        grid-column: span 2;
+      }
+
+      .stat-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-soft);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .stat-value {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.4);
+        font-size: 14px;
+        font-weight: 700;
+        word-break: break-word;
+      }
+
+      .stat-value code {
+        font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+      }
+
+      .response-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 0;
+        flex: 1 1 auto;
+      }
+
+      .code-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .code-toolbar .status-row {
+        justify-content: flex-start;
+      }
+
+      .code-block {
+        flex: 1 1 auto;
+        min-height: 240px;
+        max-height: 420px;
+        margin: 0;
+        padding: 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
+        color: #dbe7f5;
+        font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.7;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), var(--shadow-sm);
+      }
+
+      .shortcut-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .shortcut-item {
+        display: grid;
+        gap: 4px;
+        padding: 14px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: color-mix(in srgb, var(--surface-solid) 92%, transparent 8%);
+        transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+      }
+
+      .shortcut-item:hover {
+        transform: translateY(-1px);
+        border-color: var(--border-strong);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .shortcut-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .shortcut-meta {
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--text-soft);
+      }
+
+      .footer {
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .toast-stack {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 60;
+        display: grid;
+        gap: 10px;
+        width: min(380px, calc(100vw - 32px));
+      }
+
+      .toast {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 14px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: var(--surface-solid);
+        box-shadow: var(--shadow-md);
+        animation: toastIn 180ms ease-out;
+      }
+
+      .toast.success {
+        border-color: color-mix(in srgb, var(--success) 28%, transparent);
+      }
+
+      .toast.error {
+        border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+      }
+
+      .toast-title {
+        margin: 0 0 2px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .toast-copy {
+        margin: 0;
+        color: var(--text-soft);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .loading-surface {
+        position: relative;
+      }
+
+      .loading-surface.is-loading::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, transparent 0%, rgba(148, 163, 184, 0.18) 50%, transparent 100%);
+        animation: shimmer 1.1s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @@keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @@keyframes shimmer {
+        0% {
+          transform: translateX(-35%);
+        }
+        100% {
+          transform: translateX(35%);
+        }
+      }
+
+      @@media (max-width: 1200px) {
+        .card-create,
+        .card-calc,
+        .card-actions,
+        .card-latest,
+        .card-response,
+        .card-shortcuts {
+          grid-column: span 12;
+        }
+
+        .stat-card.large {
+          grid-column: span 3;
+        }
+      }
+
+      @@media (max-width: 900px) {
+        .app-shell {
+          width: min(100% - 16px, 100%);
+          margin: 8px auto;
+          padding: 16px;
+          border-radius: 22px;
+        }
+
+        .hero {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-actions {
+          justify-content: flex-start;
+        }
+
+        .field-grid,
+        .stat-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .stat-card.large {
+          grid-column: auto;
+        }
+
+        .panel-header,
+        .code-toolbar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .status-row {
+          justify-content: flex-start;
+        }
+
+        .action-row {
+          justify-content: stretch;
+        }
+
+        .btn,
+        .btn-block {
+          width: 100%;
+        }
+
+        .toast-stack {
+          top: auto;
+          bottom: 16px;
+          right: 8px;
+          left: 8px;
+          width: auto;
+        }
+      }
     </style>
   </head>
-  <body class="min-h-screen">
-    <div class="mx-auto max-w-4xl px-4 pb-4 pt-6 lg:px-6">
-      <header class="mb-4 flex items-center justify-between">
-        <div>
-          <h1 class="text-lg font-semibold">Parking Payment Service</h1>
-          <p class="text-sm muted">Developer dashboard — payment lifecycle & API actions</p>
+  <body>
+    <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="false"></div>
+
+    <main class="app-shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Parking payment operations</p>
+          <h1 class="title">A polished dashboard for the full parking payment lifecycle.</h1>
+          <p class="subtitle">Create payments, calculate fees, process exits, inspect receipts, and handle refunds from one focused workflow. The interface is tuned for clarity, fast keyboard use, and production-style responsiveness.</p>
         </div>
-        <div class="text-right">
-          <div class="text-xs muted">Backend: Play Framework</div>
+        <div class="hero-actions">
+          <span class="pill">Play Framework</span>
+          <span class="pill">Slick ORM</span>
+          <span class="pill">MySQL</span>
         </div>
-      </header>
+      </section>
 
-      <main class="grid gap-4 md:grid-cols-2">
-        <!-- Left: Compact form + actions -->
-        <section class="card p-4">
-          <h2 class="text-sm font-semibold">Create payment</h2>
-          <p class="text-xs muted mb-3">Provide entry time (local) to create a payment record.</p>
-
-          <form id="paymentForm" class="space-y-3" autocomplete="off">
-            <div class="space-y-1">
-              <label for="entryTime" class="block label font-medium">Entry time</label>
-              <input id="entryTime" name="entryTime" type="datetime-local" required class="w-full rounded px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+      <section class="dash-grid">
+        <article class="panel card-create loading-surface" id="panelCreate">
+          <div class="panel-header">
+            <div class="panel-copy">
+              <h2 class="panel-title">Create payment</h2>
+              <p class="panel-subtitle">Start a new parking session with the vehicle entry timestamp.</p>
             </div>
-
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <button id="createBtn" type="submit" class="action-btn inline-flex w-full items-center justify-center gap-2 rounded border border-transparent bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300">1 Create</button>
-              <button type="button" id="setNow" class="action-btn w-full rounded border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none">Use now</button>
-              <button type="button" id="calcFee" class="action-btn disabled-action w-full rounded border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none" disabled>Calculate Fee</button>
-            </div>
-
-            <div id="feedback" class="rounded border border-dashed border-gray-200 bg-gray-50 px-3 py-2 text-sm muted">Ready.</div>
-          </form>
-
-          <div class="mt-4 border-t pt-3">
-            <div class="label muted">Workflow</div>
-            <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-4">
-              <button id="btnCalc" class="action-btn disabled-action w-full rounded border border-gray-200 bg-white px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60" disabled>2 Calculate</button>
-              <button id="btnProcess" class="action-btn disabled-action w-full rounded border border-gray-200 bg-white px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60" disabled>3 Process</button>
-              <button id="btnReceipt" class="action-btn disabled-action w-full rounded border border-gray-200 bg-white px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60" disabled>4 Receipt</button>
-              <button id="btnRefund" class="action-btn disabled-action w-full rounded border border-gray-200 bg-white px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60" disabled>5 Refund</button>
-            </div>
-            <div class="mt-3 flex flex-wrap items-center gap-1 text-[11px] mono">
-              <span id="flowCreate" class="flow-step rounded px-2 py-1">Create</span>
-              <span class="flow-arrow">→</span>
-              <span id="flowPending" class="flow-step rounded px-2 py-1">Pending</span>
-              <span class="flow-arrow">→</span>
-              <span id="flowProcessed" class="flow-step rounded px-2 py-1">Processed</span>
-              <span class="flow-arrow">→</span>
-              <span id="flowReceipt" class="flow-step rounded px-2 py-1">Receipt</span>
-            </div>
+            <span class="route">POST /api/payments</span>
           </div>
-        </section>
-
-        <!-- Right: Details + API response -->
-        <aside class="space-y-3">
-          <div class="card p-4">
-            <div class="flex items-start justify-between">
-              <div>
-                <div class="text-xs muted">Payment details</div>
-                <div id="resultId" class="text-lg font-medium">—</div>
+          <div class="panel-main">
+            <div class="field-grid">
+              <div class="field">
+                <label for="entryTime">Entry time</label>
+                <input id="entryTime" class="date-input" type="datetime-local" autocomplete="off" />
               </div>
-              <div>
-                <span id="statusBadge" class="inline-flex items-center rounded px-2 py-1 text-xs font-medium mono">Empty</span>
+              <div class="field">
+                <label>&nbsp;</label>
+                <div class="action-row stretch">
+                  <button id="setEntryNow" class="btn btn-secondary btn-block" type="button">Use now</button>
+                  <button id="createBtn" class="btn btn-primary btn-block" type="button">Create payment</button>
+                </div>
               </div>
             </div>
-
-            <div id="resultFields" class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm muted">
-              <div class="space-y-1"><div class="label">Entry</div><div id="resultEntry">—</div></div>
-              <div class="space-y-1"><div class="label">Exit</div><div id="resultExit">—</div></div>
-              <div class="space-y-1"><div class="label">Duration</div><div id="resultDuration">—</div></div>
-              <div class="space-y-1"><div class="label">Fee</div><div id="resultFee">—</div></div>
-              <div class="space-y-1"><div class="label">Created</div><div id="resultCreated">—</div></div>
-              <div class="space-y-1"><div class="label">Updated</div><div id="resultUpdated">—</div></div>
+            <div id="createMsg" class="message neutral" tabindex="-1" role="status" aria-live="polite">
+              <span class="status-dot">◌</span>
+              <span class="message-body">Create a payment to generate the record that the rest of the workflow uses.</span>
             </div>
           </div>
+        </article>
 
-          <div class="card p-3">
-            <div class="text-xs muted mb-2">API response / Receipt</div>
-            <pre id="apiResponse" class="mono text-xs p-2 bg-gray-50 rounded border border-gray-100 overflow-auto" style="max-height:220px;">{}</pre>
+        <article class="panel card-calc loading-surface" id="panelCalc">
+          <div class="panel-header">
+            <div class="panel-copy">
+              <h2 class="panel-title">Calculate fee</h2>
+              <p class="panel-subtitle">Use the payment id and the exit timestamp to calculate the total.</p>
+            </div>
+            <span class="route">POST /api/payments/:id/calculate</span>
           </div>
-
-          <div class="card p-3">
-            <div class="flex items-center justify-between gap-2">
-              <div>
-                <div class="text-xs muted">Request log</div>
-                <div class="text-sm font-medium">Current endpoint</div>
+          <div class="panel-main">
+            <div class="field-grid">
+              <div class="field">
+                <label for="paymentId">Payment id</label>
+                <input id="paymentId" class="numeric-input" type="number" min="1" inputmode="numeric" placeholder="1" autocomplete="off" />
               </div>
-              <span class="rounded border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] mono">POST /api/payments</span>
+              <div class="field">
+                <label for="exitTime">Exit time</label>
+                <input id="exitTime" class="date-input" type="datetime-local" autocomplete="off" />
+              </div>
             </div>
-            <div class="mt-3 grid gap-2 text-xs text-gray-600">
-              <div class="flex items-center justify-between rounded border border-gray-100 bg-gray-50 px-3 py-2"><span class="mono">response</span><span id="statusCode">—</span></div>
-              <div class="flex items-center justify-between rounded border border-gray-100 bg-gray-50 px-3 py-2"><span class="mono">entryTime</span><span>validated</span></div>
-              <div class="flex items-center justify-between rounded border border-gray-100 bg-gray-50 px-3 py-2"><span class="mono">status</span><span id="statusSummary">pending</span></div>
-              <div class="flex items-center justify-between rounded border border-gray-100 bg-gray-50 px-3 py-2"><span class="mono">receipt</span><span>JSON response</span></div>
+            <div class="action-row">
+              <button id="setExitNow" class="btn btn-secondary" type="button">Use now</button>
+              <button id="calcBtn" class="btn btn-primary" type="button">Calculate fee</button>
+            </div>
+            <div id="calcMsg" class="message neutral" tabindex="-1" role="status" aria-live="polite">
+              <span class="status-dot">◌</span>
+              <span class="message-body">Fee calculation reads the stored entry time and fills in the latest payment card.</span>
             </div>
           </div>
-        </aside>
-      </main>
+        </article>
 
-      <footer class="mt-3 px-1 pb-1 text-center text-[11px] text-gray-500 mono">
-        Scala 2.13 • Play Framework • Slick • MySQL
-      </footer>
-    </div>
+        <article class="panel card-actions loading-surface" id="panelActions">
+          <div class="panel-header">
+            <div class="panel-copy">
+              <h2 class="panel-title">Other actions</h2>
+              <p class="panel-subtitle">Continue the same record through details, processing, receipt, and refund.</p>
+            </div>
+            <span class="route">/api/payments/:id/*</span>
+          </div>
+          <div class="panel-main">
+            <div class="helper">
+              <span class="helper-icon">⌘</span>
+              <div><strong>Developer shortcut:</strong> keep a payment id selected, then use the buttons below to inspect or advance the session.</div>
+            </div>
+            <div class="action-row">
+              <button id="detailsBtn" class="btn btn-secondary" type="button">Details</button>
+              <button id="processBtn" class="btn btn-primary" type="button">Process</button>
+              <button id="receiptBtn" class="btn btn-secondary" type="button">Receipt</button>
+              <button id="refundBtn" class="btn btn-danger" type="button">Refund</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel card-latest">
+          <div class="panel-header">
+            <div class="panel-copy">
+              <h2 class="panel-title">Latest payment</h2>
+              <p class="panel-subtitle">A compact summary of the most recent successful response.</p>
+            </div>
+            <div class="status-row">
+              <span id="statusBadge" class="status-chip" role="status" aria-live="polite">EMPTY</span>
+              <span id="statusCode" class="route">Awaiting request</span>
+            </div>
+          </div>
+          <div class="panel-main">
+            <div class="stat-grid">
+              <div class="stat-card">
+                <div class="stat-label"><span class="status-dot">#</span> Payment id</div>
+                <div id="showId" class="stat-value"><code>—</code></div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label"><span class="status-dot">↺</span> Status</div>
+                <div id="showStatus" class="stat-value"><code>—</code></div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label"><span class="status-dot">$</span> Fee</div>
+                <div id="showFee" class="stat-value"><code>—</code></div>
+              </div>
+              <div class="stat-card large">
+                <div class="stat-label"><span class="status-dot">⎋</span> Entry time</div>
+                <div id="showEntry" class="stat-value"><code>—</code></div>
+              </div>
+              <div class="stat-card large">
+                <div class="stat-label"><span class="status-dot">⇢</span> Exit time</div>
+                <div id="showExit" class="stat-value"><code>—</code></div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label"><span class="status-dot">min</span> Duration</div>
+                <div id="showDuration" class="stat-value"><code>—</code></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel card-response">
+          <div class="panel-header">
+            <div class="panel-copy">
+              <h2 class="panel-title">Response</h2>
+              <p class="panel-subtitle">Raw API output or error payload from the latest action, formatted for quick inspection.</p>
+            </div>
+            <span class="route">JSON</span>
+          </div>
+          <div class="response-shell">
+            <div class="code-toolbar">
+              <div class="status-row">
+                <span class="badge">Styled output</span>
+                <span class="badge">Scrollable</span>
+              </div>
+            </div>
+            <pre id="output" class="code-block" aria-live="polite" aria-atomic="true">{}</pre>
+          </div>
+        </article>
+
+        <article class="panel card-shortcuts">
+          <div class="panel-header">
+            <div class="panel-copy">
+              <h2 class="panel-title">Shortcuts</h2>
+              <p class="panel-subtitle">Quick references for the core lifecycle actions.</p>
+            </div>
+            <span class="route">/api/*</span>
+          </div>
+          <div class="panel-main">
+            <div class="shortcut-list">
+              <div class="shortcut-item">
+                <div class="shortcut-name">Create payment</div>
+                <div class="shortcut-meta">POST /api/payments</div>
+              </div>
+              <div class="shortcut-item">
+                <div class="shortcut-name">Calculate fee</div>
+                <div class="shortcut-meta">POST /api/payments/:id/calculate</div>
+              </div>
+              <div class="shortcut-item">
+                <div class="shortcut-name">Details, process, receipt, refund</div>
+                <div class="shortcut-meta">GET or POST /api/payments/:id/*</div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <div class="footer">Simple lifecycle UI for parking payments.</div>
+    </main>
 
     <script>
-      // Elements
-      const paymentForm = document.getElementById('paymentForm');
-      const entryTimeInput = document.getElementById('entryTime');
-      const setNowButton = document.getElementById('setNow');
-      const feedback = document.getElementById('feedback');
-      const createBtn = document.getElementById('createBtn');
-      const apiResponse = document.getElementById('apiResponse');
-      const statusBadge = document.getElementById('statusBadge');
-      const btnCalc = document.getElementById('btnCalc');
-      const btnProcess = document.getElementById('btnProcess');
-      const btnReceipt = document.getElementById('btnReceipt');
-      const btnRefund = document.getElementById('btnRefund');
+      const entryTime = document.getElementById('entryTime');
+      const exitTime = document.getElementById('exitTime');
+      const paymentId = document.getElementById('paymentId');
+      const output = document.getElementById('output');
       const statusCode = document.getElementById('statusCode');
-      const flowCreate = document.getElementById('flowCreate');
-      const flowPending = document.getElementById('flowPending');
-      const flowProcessed = document.getElementById('flowProcessed');
-      const flowReceipt = document.getElementById('flowReceipt');
-      let currentWorkflowStatus = '';
+      const statusBadge = document.getElementById('statusBadge');
+      const createMsg = document.getElementById('createMsg');
+      const calcMsg = document.getElementById('calcMsg');
+      const showId = document.getElementById('showId');
+      const showStatus = document.getElementById('showStatus');
+      const showFee = document.getElementById('showFee');
+      const showEntry = document.getElementById('showEntry');
+      const showExit = document.getElementById('showExit');
+      const showDuration = document.getElementById('showDuration');
+      const toastStack = document.getElementById('toastStack');
+      const createBtn = document.getElementById('createBtn');
+      const calcBtn = document.getElementById('calcBtn');
+      const detailsBtn = document.getElementById('detailsBtn');
+      const processBtn = document.getElementById('processBtn');
+      const receiptBtn = document.getElementById('receiptBtn');
+      const refundBtn = document.getElementById('refundBtn');
+      const panelCreate = document.getElementById('panelCreate');
+      const panelCalc = document.getElementById('panelCalc');
+      const panelActions = document.getElementById('panelActions');
 
-      const resultId = document.getElementById('resultId');
-      const resultEntry = document.getElementById('resultEntry');
-      const resultExit = document.getElementById('resultExit');
-      const resultDuration = document.getElementById('resultDuration');
-      const resultFee = document.getElementById('resultFee');
-      const resultCreated = document.getElementById('resultCreated');
-      const resultUpdated = document.getElementById('resultUpdated');
+      const actionButtons = [createBtn, calcBtn, detailsBtn, processBtn, receiptBtn, refundBtn];
+      const loadingPanels = [panelCreate, panelCalc, panelActions];
 
-      const updateFlowProgress = (status) => {
-        [flowCreate, flowPending, flowProcessed, flowReceipt].forEach((el) => {
-          el.classList.remove('flow-step-active');
-          el.classList.remove('flow-step-complete');
-          el.classList.remove('flow-step-failed');
-          el.classList.remove('flow-step-refunded');
-        });
-        const normalized = (status || '').toString().toLowerCase();
-        if (!normalized) {
-          flowCreate.classList.add('flow-step-active');
-          return;
-        }
-        if (normalized.includes('failed') || normalized.includes('error')) {
-          flowCreate.classList.add('flow-step-complete');
-          flowPending.classList.add('flow-step-failed');
-          return;
-        }
-        if (normalized.includes('refunded')) {
-          flowCreate.classList.add('flow-step-complete');
-          flowPending.classList.add('flow-step-complete');
-          flowProcessed.classList.add('flow-step-complete');
-          flowReceipt.classList.add('flow-step-refunded');
-          return;
-        }
-        if (normalized.includes('success') || normalized.includes('processed') || normalized.includes('paid')) {
-          flowCreate.classList.add('flow-step-complete');
-          flowPending.classList.add('flow-step-complete');
-          flowProcessed.classList.add('flow-step-active');
-          return;
-        }
-        if (normalized.includes('created') || normalized.includes('pending') || normalized.includes('open')) {
-          flowCreate.classList.add('flow-step-complete');
-          flowPending.classList.add('flow-step-active');
-          return;
-        }
-        flowCreate.classList.add('flow-step-active');
+      const setNow = (input) => {
+        const value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        input.value = value;
       };
 
-      const setStatusCode = (code, text) => {
-        if (!code) {
-          statusCode.textContent = '—';
-          return;
+      const toIso = (value) => (value ? `${value}:00` : '');
+
+      const parseJson = async (res) => {
+        const text = await res.text();
+        if (!text) return {};
+        const trimmed = text.trim();
+        if (trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html')) {
+          return { error: 'Server returned an HTML error page.' };
         }
-        statusCode.textContent = `${code} ${text || ''}`.trim();
+        try {
+          return JSON.parse(text);
+        } catch (_) {
+          return { raw: text };
+        }
       };
 
-      const setBusy = (busy) => {
-        createBtn.disabled = busy;
-        createBtn.textContent = busy ? 'Processing...' : '1 Create';
-        setNowButton.disabled = busy;
-        btnCalc.disabled = busy;
-        btnProcess.disabled = busy;
-        btnReceipt.disabled = busy;
-        btnRefund.disabled = busy;
-        if (!busy) updateWorkflowStates(currentWorkflowStatus);
-      };
-
-      const formatForInput = (date) => {
-        const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-        return local.toISOString().slice(0, 16);
-      };
-
-      const formatDisplay = (value) => {
+      const display = (value) => {
         if (!value) return '—';
         const parsed = new Date(value);
-        if (Number.isNaN(parsed.getTime())) return value;
-        return parsed.toLocaleString();
+        return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
       };
 
-      const formatCurrency = (value) => {
-        if (value === null || value === undefined) return '—';
-        return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(value);
-      };
-
-      const setStatusBadge = (status) => {
-        statusBadge.textContent = status || 'Empty';
-        const statusSummary = document.getElementById('statusSummary');
-        statusSummary.textContent = (status || 'pending').toString().toLowerCase();
-        statusBadge.className = 'inline-flex items-center rounded px-2 py-1 text-xs font-medium mono';
-        if (!status) return;
-        const s = status.toString().toLowerCase();
-        if (s.includes('success') || s.includes('succeeded') || s === 'paid') statusBadge.classList.add('status-success');
-        else if (s.includes('failed') || s.includes('error')) statusBadge.classList.add('status-failed');
-        else if (s.includes('pending')) statusBadge.classList.add('status-pending');
-        else if (s.includes('refunded')) statusBadge.classList.add('status-refunded');
-        else statusBadge.classList.add('status-pending');
-      };
-
-      const updateWorkflowStates = (status) => {
+      const setStatus = (status) => {
         const normalized = (status || '').toString().toLowerCase();
-        currentWorkflowStatus = normalized;
-        const isCreated = normalized.includes('created') || normalized.includes('pending') || normalized.includes('open') || normalized.includes('success') || normalized.includes('processed') || normalized.includes('paid') || normalized.includes('refunded');
-        const isProcessed = normalized.includes('success') || normalized.includes('processed') || normalized.includes('paid') || normalized.includes('refunded');
-        const isRefunded = normalized.includes('refunded');
-
-        btnCalc.disabled = !isCreated;
-        btnProcess.disabled = !isCreated;
-        btnReceipt.disabled = !isProcessed;
-        btnRefund.disabled = !isProcessed || isRefunded;
-
-        btnReceipt.classList.toggle('opacity-60', btnReceipt.disabled);
-        btnRefund.classList.toggle('opacity-60', btnRefund.disabled);
-        updateFlowProgress(status);
+        statusBadge.textContent = (status || 'EMPTY').toString().toUpperCase();
+        statusBadge.className = 'status-chip';
+        if (normalized.includes('complete') || normalized.includes('success') || normalized === 'paid') {
+          statusBadge.classList.add('success');
+        } else if (normalized.includes('pending')) {
+          statusBadge.classList.add('pending');
+        } else if (normalized.includes('fail') || normalized.includes('error')) {
+          statusBadge.classList.add('failed');
+        }
       };
 
-      const showResult = (payment) => {
-        resultId.textContent = payment.id ?? '—';
-        resultEntry.textContent = formatDisplay(payment.entryTime);
-        resultExit.textContent = formatDisplay(payment.exitTime);
-        resultDuration.textContent = payment.durationMinutes == null ? '—' : `${payment.durationMinutes} min`;
-        resultFee.textContent = formatCurrency(payment.calculatedFee);
-        resultCreated.textContent = formatDisplay(payment.createdAt);
-        resultUpdated.textContent = formatDisplay(payment.updatedAt);
-        apiResponse.textContent = JSON.stringify(payment, null, 2);
-        feedback.textContent = `Payment ${payment.id} created.`;
-        feedback.className = 'rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800';
-        setStatusBadge(payment.status);
-        updateWorkflowStates(payment.status);
+      const setStatValue = (node, value) => {
+        node.innerHTML = `<code>${value}</code>`;
       };
 
-      const showError = (message, code, statusText) => {
-        feedback.textContent = message;
-        feedback.className = 'rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700';
-        apiResponse.textContent = JSON.stringify({ error: message }, null, 2);
-        setStatusBadge('FAILED');
-        updateWorkflowStates('failed');
-        setStatusCode(code, statusText);
+      const renderPayment = (payload) => {
+        if (!payload || typeof payload !== 'object') return;
+        if (payload.id !== undefined && payload.id !== null) paymentId.value = payload.id;
+        if (payload.entryTime) entryTime.value = payload.entryTime.slice(0, 16);
+        if (payload.exitTime) exitTime.value = payload.exitTime.slice(0, 16);
+        setStatValue(showId, payload.id ?? '—');
+        setStatValue(showStatus, payload.status ?? '—');
+        setStatValue(showFee, payload.calculatedFee ?? '—');
+        setStatValue(showEntry, display(payload.entryTime));
+        setStatValue(showExit, display(payload.exitTime));
+        setStatValue(showDuration, payload.durationMinutes != null ? `${payload.durationMinutes} min` : '—');
+        setStatus(payload.status);
       };
 
-      const setInitialTime = () => entryTimeInput.value = formatForInput(new Date());
-      setInitialTime();
-      setNowButton.addEventListener('click', setInitialTime);
+      const setResponse = (res, payload) => {
+        statusCode.textContent = `${res.status} ${res.statusText}`.trim();
+        output.textContent = JSON.stringify(payload, null, 2);
+      };
 
-      paymentForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const entryTime = entryTimeInput.value;
-        if (!entryTime) { showError('Entry time is required.'); return; }
-        setBusy(true);
-        feedback.textContent = 'Processing...';
+      const setMessage = (node, message, kind) => {
+        node.innerHTML = '';
+        const icon = document.createElement('span');
+        icon.className = 'status-dot';
+        if (kind === 'success') icon.classList.add('success');
+        if (kind === 'error') icon.classList.add('failed');
+        if (kind === 'neutral') icon.classList.add('pending');
+        icon.textContent = kind === 'success' ? '✓' : kind === 'error' ? '!' : '◌';
+
+        const body = document.createElement('span');
+        body.className = 'message-body';
+        body.textContent = message;
+
+        node.classList.remove('success', 'error', 'neutral');
+        if (kind === 'error') node.classList.add('error');
+        else if (kind === 'success') node.classList.add('success');
+        else node.classList.add('neutral');
+
+        node.appendChild(icon);
+        node.appendChild(body);
+      };
+
+      const setLoading = (active, label) => {
+        actionButtons.forEach((button) => {
+          button.disabled = active;
+          if (active) {
+            if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;
+            if (button === active && label) button.textContent = label;
+          } else if (button.dataset.originalLabel) {
+            button.textContent = button.dataset.originalLabel;
+          }
+        });
+        loadingPanels.forEach((panel) => panel.classList.toggle('is-loading', active));
+      };
+
+      const showToast = (title, message, kind) => {
+        const toast = document.createElement('div');
+        toast.className = `toast ${kind || ''}`.trim();
+        toast.tabIndex = 0;
+
+        const icon = document.createElement('span');
+        icon.className = 'status-dot';
+        if (kind === 'success') icon.classList.add('success');
+        if (kind === 'error') icon.classList.add('failed');
+        if (kind === 'neutral') icon.classList.add('pending');
+        icon.textContent = kind === 'success' ? '✓' : kind === 'error' ? '!' : 'i';
+
+        const copy = document.createElement('div');
+        const titleEl = document.createElement('p');
+        titleEl.className = 'toast-title';
+        titleEl.textContent = title;
+        const copyEl = document.createElement('p');
+        copyEl.className = 'toast-copy';
+        copyEl.textContent = message;
+        copy.appendChild(titleEl);
+        copy.appendChild(copyEl);
+
+        toast.appendChild(icon);
+        toast.appendChild(copy);
+        toastStack.appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-4px)';
+          toast.style.transition = 'opacity 160ms ease, transform 160ms ease';
+          setTimeout(() => toast.remove(), 180);
+        }, 3000);
+      };
+
+      const focusMessage = (node) => {
+        requestAnimationFrame(() => node.focus());
+      };
+
+      const withLoading = async (button, label, handler) => {
+        const originalLabel = button.textContent;
+        button.disabled = true;
+        button.textContent = label;
+        loadingPanels.forEach((panel) => panel.classList.add('is-loading'));
         try {
+          return await handler();
+        } finally {
+          button.disabled = false;
+          button.textContent = originalLabel;
+          loadingPanels.forEach((panel) => panel.classList.remove('is-loading'));
+        }
+      };
+
+      document.getElementById('setEntryNow').addEventListener('click', () => setNow(entryTime));
+      document.getElementById('setExitNow').addEventListener('click', () => setNow(exitTime));
+
+      setNow(entryTime);
+      setNow(exitTime);
+
+      createBtn.addEventListener('click', async () => {
+        await withLoading(createBtn, 'Creating...', async () => {
+          if (!entryTime.value) {
+            setMessage(createMsg, 'Entry time is required.', 'error');
+            entryTime.setAttribute('aria-invalid', 'true');
+            focusMessage(createMsg);
+            showToast('Create payment failed', 'Entry time is required before creating a payment.', 'error');
+            return;
+          }
+
+          entryTime.removeAttribute('aria-invalid');
+          setMessage(createMsg, 'Creating payment...', 'neutral');
           const res = await fetch('/api/payments', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ entryTime: `${entryTime}:00` })
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entryTime: toIso(entryTime.value) })
           });
-          const payload = await res.json();
-          setStatusCode(res.status, res.statusText);
-          if (!res.ok) throw new Error(payload?.message || 'Unable to create payment');
-          showResult(payload);
-        } catch (err) {
-          showError(err.message || 'Network error');
-        } finally { setBusy(false); }
+          const payload = await parseJson(res);
+          setResponse(res, payload);
+
+          if (!res.ok) {
+            const message = payload.message || payload.error || 'Unable to create payment.';
+            setMessage(createMsg, message, 'error');
+            focusMessage(createMsg);
+            showToast('Create payment failed', message, 'error');
+            return;
+          }
+
+          setMessage(createMsg, 'Payment created successfully.', 'success');
+          renderPayment(payload);
+          showToast('Payment created', `Payment ${payload.id ?? ''} is ready for fee calculation.`, 'success');
+        });
       });
 
-      updateFlowProgress('');
+      calcBtn.addEventListener('click', async () => {
+        await withLoading(calcBtn, 'Calculating...', async () => {
+          const id = paymentId.value;
+          if (!id) {
+            setMessage(calcMsg, 'Payment id is required.', 'error');
+            paymentId.setAttribute('aria-invalid', 'true');
+            focusMessage(calcMsg);
+            showToast('Fee calculation failed', 'Provide a payment id before calculating the fee.', 'error');
+            return;
+          }
+
+          paymentId.removeAttribute('aria-invalid');
+          if (!exitTime.value) {
+            setMessage(calcMsg, 'Exit time is required.', 'error');
+            exitTime.setAttribute('aria-invalid', 'true');
+            focusMessage(calcMsg);
+            showToast('Fee calculation failed', 'Exit time is required before calculating the fee.', 'error');
+            return;
+          }
+
+          exitTime.removeAttribute('aria-invalid');
+          setMessage(calcMsg, 'Calculating fee...', 'neutral');
+          const res = await fetch(`/api/payments/${id}/calculate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ exitTime: toIso(exitTime.value) })
+          });
+          const payload = await parseJson(res);
+          setResponse(res, payload);
+
+          if (!res.ok) {
+            const message = payload.message || payload.error || 'Unable to calculate fee.';
+            setMessage(calcMsg, message, 'error');
+            showToast('Fee calculation failed', message, 'error');
+            return;
+          }
+
+          setMessage(calcMsg, 'Fee calculated successfully.', 'success');
+          if (payload.calculatedFee !== undefined) setStatValue(showFee, payload.calculatedFee);
+          else if (payload.fee !== undefined) setStatValue(showFee, payload.fee);
+          if (payload.durationMinutes !== undefined) setStatValue(showDuration, `${payload.durationMinutes} min`);
+          if (payload.status) setStatValue(showStatus, payload.status);
+          if (payload.exitTime) setStatValue(showExit, display(payload.exitTime));
+          if (payload.id !== undefined && payload.id !== null) setStatValue(showId, payload.id);
+          renderPayment(payload);
+          showToast('Fee calculated', `Payment ${payload.id ?? id} was updated with the latest exit time.`, 'success');
+        });
+      });
+
+      const callIdAction = async (path, method, body, button, successTitle) => {
+        await withLoading(button, 'Working...', async () => {
+          const id = paymentId.value;
+          if (!id) {
+            const payload = { error: 'Payment id is required.' };
+            setResponse({ status: 400, statusText: 'Bad Request' }, payload);
+            showToast('Action blocked', payload.error, 'error');
+            return;
+          }
+
+          const res = await fetch(path.replace(':id', id), {
+            method,
+            headers: body ? { 'Content-Type': 'application/json' } : undefined,
+            body: body ? JSON.stringify(body) : undefined
+          });
+          const payload = await parseJson(res);
+          setResponse(res, payload);
+
+          if (!res.ok) {
+            const message = payload.message || payload.error || 'Request failed.';
+            showToast(`${successTitle} failed`, message, 'error');
+            return;
+          }
+
+          if (payload && typeof payload === 'object' && payload.id !== undefined) {
+            renderPayment(payload);
+          }
+
+          showToast(successTitle, payload.message || `Payment ${id} completed the request.`, 'success');
+        });
+      };
+
+      detailsBtn.addEventListener('click', () => callIdAction('/api/payments/:id', 'GET', undefined, detailsBtn, 'Details loaded'));
+      processBtn.addEventListener('click', () => callIdAction('/api/payments/:id/process', 'POST', {}, processBtn, 'Payment processed'));
+      receiptBtn.addEventListener('click', () => callIdAction('/api/payments/:id/receipt', 'GET', undefined, receiptBtn, 'Receipt loaded'));
+      refundBtn.addEventListener('click', () => callIdAction('/api/payments/:id/refund', 'POST', {}, refundBtn, 'Refund requested'));
     </script>
   </body>
 </html>

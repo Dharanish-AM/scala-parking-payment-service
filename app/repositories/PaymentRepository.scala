@@ -48,4 +48,12 @@ class PaymentRepository @Inject() (
         .headOption
     )
   }
+
+  def update(payment: Payment): Future[Int] = {
+    db.run(
+      payments
+        .filter(_.id === payment.id)
+        .update(payment.copy(updatedAt = LocalDateTime.now()))
+    )
+  }
 }

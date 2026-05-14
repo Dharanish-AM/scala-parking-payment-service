@@ -6,8 +6,8 @@ GET     /api/health                     controllers.HealthController.health
 
 # Payments
 POST    /api/payments                   controllers.PaymentController.createPayment
-POST    /api/payments/calculate         controllers.PaymentController.calculateFee
-GET     /api/payments/:id               controllers.PaymentController.getPaymentDetails(id: Long)
+POST    /api/payments/:id/calculate     controllers.PaymentController.calculateFee(id: Long)
 POST    /api/payments/:id/process       controllers.PaymentController.processPayment(id: Long)
+GET     /api/payments/:id               controllers.PaymentController.getPaymentDetails(id: Long)
 POST    /api/payments/:id/refund        controllers.PaymentController.refundPayment(id: Long)
 GET     /api/payments/:id/receipt       controllers.PaymentController.getReceipt(id: Long)

@@ -21,14 +21,12 @@ case class PaymentResponse(
 )
 
 case class CalculateFeeRequest(
-  entryTime: LocalDateTime,
   exitTime: LocalDateTime
 )
 
 case class CalculateFeeResponse(
   durationMinutes: Int,
-  fee: BigDecimal,
-  breakdown: String 
+  fee: BigDecimal
 )
 
 object DateTimeFormats {
