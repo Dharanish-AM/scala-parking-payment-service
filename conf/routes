@@ -1,3 +1,6 @@
+# UI
+GET     /                               controllers.HomeController.index
+
 # Health
 GET     /api/health                     controllers.HealthController.health
 

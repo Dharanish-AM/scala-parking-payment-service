@@ -1,0 +1,320 @@
+@()
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Parking Payment Service — Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Minimal resets and compact developer-friendly styles */
+      html,body { height: 100%; }
+      body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #f7f8fb; color: #0f172a; }
+      .card { background: white; border: 1px solid #e6e9ef; border-radius: 8px; }
+      .muted { color: #6b7280; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace; font-size: 13px; line-height: 1.5; }
+      .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+      .status-success { background: #ecfdf5; color: #065f46; border: 1px solid #bbf7d0; }
+      .status-failed { background: #fff1f2; color: #9f1239; border: 1px solid #fecaca; }
+      .status-pending { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+      .status-refunded { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+      .action-btn { height: 40px; }
+      .disabled-action:disabled { background: #f8fafc; border-color: #e2e8f0; color: #94a3b8; opacity: 0.85; cursor: not-allowed; }
+      .flow-step { border: 1px solid #e5e7eb; background: #f9fafb; color: #6b7280; }
+      .flow-step-active { border-color: #38bdf8; background: #e0f2fe; color: #0c4a6e; font-weight: 600; }
+      .flow-step-complete { border-color: #bbf7d0; background: #ecfdf5; color: #065f46; }
+      .flow-step-failed { border-color: #fecaca; background: #fff1f2; color: #9f1239; }
+      .flow-step-refunded { border-color: #d1d5db; background: #f3f4f6; color: #374151; }
+      .flow-arrow { color: #9ca3af; font-size: 10px; line-height: 1; }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <div class="mx-auto max-w-4xl px-4 pb-4 pt-6 lg:px-6">
+      <header class="mb-4 flex items-center justify-between">
+        <div>
+          <h1 class="text-lg font-semibold">Parking Payment Service</h1>
+          <p class="text-sm muted">Developer dashboard — payment lifecycle & API actions</p>
+        </div>
+        <div class="text-right">
+          <div class="text-xs muted">Backend: Play Framework</div>
+        </div>
+      </header>
+
+      <main class="grid gap-4 md:grid-cols-2">
+        <!-- Left: Compact form + actions -->
+        <section class="card p-4">
+          <h2 class="text-sm font-semibold">Create payment</h2>
+          <p class="text-xs muted mb-3">Provide entry time (local) to create a payment record.</p>
+
+          <form id="paymentForm" class="space-y-3" autocomplete="off">
+            <div class="space-y-1">
+              <label for="entryTime" class="block label font-medium">Entry time</label>
+              <input id="entryTime" name="entryTime" type="datetime-local" required class="w-full rounded px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+            </div>
+
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <button id="createBtn" type="submit" class="action-btn inline-flex w-full items-center justify-center gap-2 rounded border border-transparent bg-sky-600 px-3 py-2 text-sm font-medium text-white hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300">1 Create</button>
+              <button type="button" id="setNow" class="action-btn w-full rounded border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none">Use now</button>
+              <button type="button" id="calcFee" class="action-btn disabled-action w-full rounded border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none" disabled>Calculate Fee</button>
+            </div>
+
+            <div id="feedback" class="rounded border border-dashed border-gray-200 bg-gray-50 px-3 py-2 text-sm muted">Ready.</div>
+          </form>
+
+          <div class="mt-4 border-t pt-3">
+            <div class="label muted">Workflow</div>
+            <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-4">
+              <button id="btnCalc" class="action-btn disabled-action w-full rounded border border-gray-200 bg-white px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60" disabled>2 Calculate</button>
+              <button id="btnProcess" class="action-btn disabled-action w-full rounded border border-gray-200 bg-white px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60" disabled>3 Process</button>
+              <button id="btnReceipt" class="action-btn disabled-action w-full rounded border border-gray-200 bg-white px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60" disabled>4 Receipt</button>
+              <button id="btnRefund" class="action-btn disabled-action w-full rounded border border-gray-200 bg-white px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60" disabled>5 Refund</button>
+            </div>
+            <div class="mt-3 flex flex-wrap items-center gap-1 text-[11px] mono">
+              <span id="flowCreate" class="flow-step rounded px-2 py-1">Create</span>
+              <span class="flow-arrow">→</span>
+              <span id="flowPending" class="flow-step rounded px-2 py-1">Pending</span>
+              <span class="flow-arrow">→</span>
+              <span id="flowProcessed" class="flow-step rounded px-2 py-1">Processed</span>
+              <span class="flow-arrow">→</span>
+              <span id="flowReceipt" class="flow-step rounded px-2 py-1">Receipt</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: Details + API response -->
+        <aside class="space-y-3">
+          <div class="card p-4">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="text-xs muted">Payment details</div>
+                <div id="resultId" class="text-lg font-medium">—</div>
+              </div>
+              <div>
+                <span id="statusBadge" class="inline-flex items-center rounded px-2 py-1 text-xs font-medium mono">Empty</span>
+              </div>
+            </div>
+
+            <div id="resultFields" class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm muted">
+              <div class="space-y-1"><div class="label">Entry</div><div id="resultEntry">—</div></div>
+              <div class="space-y-1"><div class="label">Exit</div><div id="resultExit">—</div></div>
+              <div class="space-y-1"><div class="label">Duration</div><div id="resultDuration">—</div></div>
+              <div class="space-y-1"><div class="label">Fee</div><div id="resultFee">—</div></div>
+              <div class="space-y-1"><div class="label">Created</div><div id="resultCreated">—</div></div>
+              <div class="space-y-1"><div class="label">Updated</div><div id="resultUpdated">—</div></div>
+            </div>
+          </div>
+
+          <div class="card p-3">
+            <div class="text-xs muted mb-2">API response / Receipt</div>
+            <pre id="apiResponse" class="mono text-xs p-2 bg-gray-50 rounded border border-gray-100 overflow-auto" style="max-height:220px;">{}</pre>
+          </div>
+
+          <div class="card p-3">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <div class="text-xs muted">Request log</div>
+                <div class="text-sm font-medium">Current endpoint</div>
+              </div>
+              <span class="rounded border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] mono">POST /api/payments</span>
+            </div>
+            <div class="mt-3 grid gap-2 text-xs text-gray-600">
+              <div class="flex items-center justify-between rounded border border-gray-100 bg-gray-50 px-3 py-2"><span class="mono">response</span><span id="statusCode">—</span></div>
+              <div class="flex items-center justify-between rounded border border-gray-100 bg-gray-50 px-3 py-2"><span class="mono">entryTime</span><span>validated</span></div>
+              <div class="flex items-center justify-between rounded border border-gray-100 bg-gray-50 px-3 py-2"><span class="mono">status</span><span id="statusSummary">pending</span></div>
+              <div class="flex items-center justify-between rounded border border-gray-100 bg-gray-50 px-3 py-2"><span class="mono">receipt</span><span>JSON response</span></div>
+            </div>
+          </div>
+        </aside>
+      </main>
+
+      <footer class="mt-3 px-1 pb-1 text-center text-[11px] text-gray-500 mono">
+        Scala 2.13 • Play Framework • Slick • MySQL
+      </footer>
+    </div>
+
+    <script>
+      // Elements
+      const paymentForm = document.getElementById('paymentForm');
+      const entryTimeInput = document.getElementById('entryTime');
+      const setNowButton = document.getElementById('setNow');
+      const feedback = document.getElementById('feedback');
+      const createBtn = document.getElementById('createBtn');
+      const apiResponse = document.getElementById('apiResponse');
+      const statusBadge = document.getElementById('statusBadge');
+      const btnCalc = document.getElementById('btnCalc');
+      const btnProcess = document.getElementById('btnProcess');
+      const btnReceipt = document.getElementById('btnReceipt');
+      const btnRefund = document.getElementById('btnRefund');
+      const statusCode = document.getElementById('statusCode');
+      const flowCreate = document.getElementById('flowCreate');
+      const flowPending = document.getElementById('flowPending');
+      const flowProcessed = document.getElementById('flowProcessed');
+      const flowReceipt = document.getElementById('flowReceipt');
+      let currentWorkflowStatus = '';
+
+      const resultId = document.getElementById('resultId');
+      const resultEntry = document.getElementById('resultEntry');
+      const resultExit = document.getElementById('resultExit');
+      const resultDuration = document.getElementById('resultDuration');
+      const resultFee = document.getElementById('resultFee');
+      const resultCreated = document.getElementById('resultCreated');
+      const resultUpdated = document.getElementById('resultUpdated');
+
+      const updateFlowProgress = (status) => {
+        [flowCreate, flowPending, flowProcessed, flowReceipt].forEach((el) => {
+          el.classList.remove('flow-step-active');
+          el.classList.remove('flow-step-complete');
+          el.classList.remove('flow-step-failed');
+          el.classList.remove('flow-step-refunded');
+        });
+        const normalized = (status || '').toString().toLowerCase();
+        if (!normalized) {
+          flowCreate.classList.add('flow-step-active');
+          return;
+        }
+        if (normalized.includes('failed') || normalized.includes('error')) {
+          flowCreate.classList.add('flow-step-complete');
+          flowPending.classList.add('flow-step-failed');
+          return;
+        }
+        if (normalized.includes('refunded')) {
+          flowCreate.classList.add('flow-step-complete');
+          flowPending.classList.add('flow-step-complete');
+          flowProcessed.classList.add('flow-step-complete');
+          flowReceipt.classList.add('flow-step-refunded');
+          return;
+        }
+        if (normalized.includes('success') || normalized.includes('processed') || normalized.includes('paid')) {
+          flowCreate.classList.add('flow-step-complete');
+          flowPending.classList.add('flow-step-complete');
+          flowProcessed.classList.add('flow-step-active');
+          return;
+        }
+        if (normalized.includes('created') || normalized.includes('pending') || normalized.includes('open')) {
+          flowCreate.classList.add('flow-step-complete');
+          flowPending.classList.add('flow-step-active');
+          return;
+        }
+        flowCreate.classList.add('flow-step-active');
+      };
+
+      const setStatusCode = (code, text) => {
+        if (!code) {
+          statusCode.textContent = '—';
+          return;
+        }
+        statusCode.textContent = `${code} ${text || ''}`.trim();
+      };
+
+      const setBusy = (busy) => {
+        createBtn.disabled = busy;
+        createBtn.textContent = busy ? 'Processing...' : '1 Create';
+        setNowButton.disabled = busy;
+        btnCalc.disabled = busy;
+        btnProcess.disabled = busy;
+        btnReceipt.disabled = busy;
+        btnRefund.disabled = busy;
+        if (!busy) updateWorkflowStates(currentWorkflowStatus);
+      };
+
+      const formatForInput = (date) => {
+        const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 16);
+      };
+
+      const formatDisplay = (value) => {
+        if (!value) return '—';
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return value;
+        return parsed.toLocaleString();
+      };
+
+      const formatCurrency = (value) => {
+        if (value === null || value === undefined) return '—';
+        return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(value);
+      };
+
+      const setStatusBadge = (status) => {
+        statusBadge.textContent = status || 'Empty';
+        const statusSummary = document.getElementById('statusSummary');
+        statusSummary.textContent = (status || 'pending').toString().toLowerCase();
+        statusBadge.className = 'inline-flex items-center rounded px-2 py-1 text-xs font-medium mono';
+        if (!status) return;
+        const s = status.toString().toLowerCase();
+        if (s.includes('success') || s.includes('succeeded') || s === 'paid') statusBadge.classList.add('status-success');
+        else if (s.includes('failed') || s.includes('error')) statusBadge.classList.add('status-failed');
+        else if (s.includes('pending')) statusBadge.classList.add('status-pending');
+        else if (s.includes('refunded')) statusBadge.classList.add('status-refunded');
+        else statusBadge.classList.add('status-pending');
+      };
+
+      const updateWorkflowStates = (status) => {
+        const normalized = (status || '').toString().toLowerCase();
+        currentWorkflowStatus = normalized;
+        const isCreated = normalized.includes('created') || normalized.includes('pending') || normalized.includes('open') || normalized.includes('success') || normalized.includes('processed') || normalized.includes('paid') || normalized.includes('refunded');
+        const isProcessed = normalized.includes('success') || normalized.includes('processed') || normalized.includes('paid') || normalized.includes('refunded');
+        const isRefunded = normalized.includes('refunded');
+
+        btnCalc.disabled = !isCreated;
+        btnProcess.disabled = !isCreated;
+        btnReceipt.disabled = !isProcessed;
+        btnRefund.disabled = !isProcessed || isRefunded;
+
+        btnReceipt.classList.toggle('opacity-60', btnReceipt.disabled);
+        btnRefund.classList.toggle('opacity-60', btnRefund.disabled);
+        updateFlowProgress(status);
+      };
+
+      const showResult = (payment) => {
+        resultId.textContent = payment.id ?? '—';
+        resultEntry.textContent = formatDisplay(payment.entryTime);
+        resultExit.textContent = formatDisplay(payment.exitTime);
+        resultDuration.textContent = payment.durationMinutes == null ? '—' : `${payment.durationMinutes} min`;
+        resultFee.textContent = formatCurrency(payment.calculatedFee);
+        resultCreated.textContent = formatDisplay(payment.createdAt);
+        resultUpdated.textContent = formatDisplay(payment.updatedAt);
+        apiResponse.textContent = JSON.stringify(payment, null, 2);
+        feedback.textContent = `Payment ${payment.id} created.`;
+        feedback.className = 'rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800';
+        setStatusBadge(payment.status);
+        updateWorkflowStates(payment.status);
+      };
+
+      const showError = (message, code, statusText) => {
+        feedback.textContent = message;
+        feedback.className = 'rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700';
+        apiResponse.textContent = JSON.stringify({ error: message }, null, 2);
+        setStatusBadge('FAILED');
+        updateWorkflowStates('failed');
+        setStatusCode(code, statusText);
+      };
+
+      const setInitialTime = () => entryTimeInput.value = formatForInput(new Date());
+      setInitialTime();
+      setNowButton.addEventListener('click', setInitialTime);
+
+      paymentForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const entryTime = entryTimeInput.value;
+        if (!entryTime) { showError('Entry time is required.'); return; }
+        setBusy(true);
+        feedback.textContent = 'Processing...';
+        try {
+          const res = await fetch('/api/payments', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entryTime: `${entryTime}:00` })
+          });
+          const payload = await res.json();
+          setStatusCode(res.status, res.statusText);
+          if (!res.ok) throw new Error(payload?.message || 'Unable to create payment');
+          showResult(payload);
+        } catch (err) {
+          showError(err.message || 'Network error');
+        } finally { setBusy(false); }
+      });
+
+      updateFlowProgress('');
+    </script>
+  </body>
+</html>
