@@ -5,7 +5,12 @@ import play.api.mvc._
 import play.api.libs.json._
 import scala.concurrent.{ExecutionContext, Future}
 
-import dtos.{CalculateFeeRequest, CalculateFeeResponse, CreatePaymentRequest, PaymentResponse}
+import dtos.{
+  CalculateFeeRequest,
+  CalculateFeeResponse,
+  CreatePaymentRequest,
+  PaymentResponse
+}
 import mappers.PaymentMapper
 import services.PaymentService
 import dtos.DateTimeFormats._
@@ -59,24 +64,40 @@ class PaymentController @Inject() (
               case Left("not_found") =>
                 NotFound(Json.obj("error" -> s"Payment with id $id not found"))
               case Left("invalid_exit_time") =>
-                BadRequest(Json.obj("error" -> "exitTime must be after entryTime"))
+                BadRequest(
+                  Json.obj("error" -> "exitTime must be after entryTime")
+                )
               case Left(_) =>
-                InternalServerError(Json.obj("error" -> "Unable to calculate fee"))
+                InternalServerError(
+                  Json.obj("error" -> "Unable to calculate fee")
+                )
             }
         )
+  }
+
+  def processPayment(id: Long): Action[AnyContent] = Action.async { request =>
+    paymentService.processPayment(id).map {
+      case Right(payment) => Ok(Json.toJson(PaymentMapper.toResponse(payment)))
+      case Left("not_found") =>
+        NotFound(Json.obj("error" -> s"Payment with id $id not found"))
+      case Left("fee_not_calculated") =>
+        BadRequest(
+          Json
+            .obj("error" -> "Fee must be calculated before processing payment")
+        )
+      case Left("update_failed") =>
+        InternalServerError(
+          Json.obj("error" -> "Unable to update payment status")
+        )
+      case Left(_) =>
+        InternalServerError(Json.obj("error" -> "Unable to process payment"))
+    }
   }
 
   def getPaymentDetails(id: Long): Action[AnyContent] = Action.async {
     Future.successful(
       Ok(Json.obj("message" -> "getPaymentDetails not yet implemented"))
     )
-  }
-
-  def processPayment(id: Long): Action[JsValue] = Action.async(parse.json) {
-    request =>
-      Future.successful(
-        Ok(Json.obj("message" -> "processPayment not yet implemented"))
-      )
   }
 
   def refundPayment(id: Long): Action[JsValue] = Action.async(parse.json) {

@@ -28,7 +28,7 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
           val durationMinutes = java.time.Duration
             .between(payment.entryTime, exitTime)
             .toMinutes
-          .toInt
+            .toInt
 
           val fee = calculateParkingFee.calculateParkingFee(durationMinutes)
           val updatedPayment = payment.copy(
@@ -46,4 +46,27 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
       case None => Future.successful(Left("not_found"))
     }
   }
+
+  def processPayment(id: Long): Future[Either[String, Payment]] = {
+
+    paymentRepository.completeIfFeeCalculated(id).flatMap {
+      case 1 =>
+
+        paymentRepository.findById(id).map {
+          case Some(p) => Right(p)
+          case None    => Left("not_found")
+        }
+      case 0 =>
+
+        paymentRepository.findById(id).map {
+          case None          => Left("not_found")
+          case Some(payment) =>
+            payment.calculatedFee match {
+              case None    => Left("fee_not_calculated")
+              case Some(_) => Left("update_failed")
+            }
+        }
+    }
+  }
+
 }

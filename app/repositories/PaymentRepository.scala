@@ -17,6 +17,12 @@ class PaymentRepository @Inject() (
 
   import profile.api._
 
+  implicit val paymentStatusColumnType: BaseColumnType[PaymentStatus.Value] =
+    MappedColumnType.base[PaymentStatus.Value, String](
+      _.toString,
+      PaymentStatus.withName
+    )
+
   private val payments = TableQuery[PaymentTable]
   def create(entryTime: LocalDateTime): Future[Payment] = {
     val now = LocalDateTime.now()
@@ -54,6 +60,18 @@ class PaymentRepository @Inject() (
       payments
         .filter(_.id === payment.id)
         .update(payment.copy(updatedAt = LocalDateTime.now()))
+    )
+  }
+
+  def completeIfFeeCalculated(id: Long): Future[Int] = {
+    val now = LocalDateTime.now()
+    db.run(
+      payments
+        .filter(p =>
+          p.id === id && p.calculatedFee.isDefined && p.status === PaymentStatus.PENDING
+        )
+        .map(p => (p.status, p.updatedAt))
+        .update((PaymentStatus.COMPLETED, now))
     )
   }
 }

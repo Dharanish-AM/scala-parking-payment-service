@@ -6,27 +6,27 @@ import play.api.libs.json._
 import models.PaymentStatus
 
 case class CreatePaymentRequest(
-  entryTime: LocalDateTime
+    entryTime: LocalDateTime
 )
 
 case class PaymentResponse(
-  id: Long,
-  entryTime: LocalDateTime,
-  exitTime: Option[LocalDateTime],
-  durationMinutes: Option[Int],
-  calculatedFee: Option[BigDecimal],
-  status: PaymentStatus.PaymentStatus, 
-  createdAt: LocalDateTime,
-  updatedAt: LocalDateTime
+    id: Long,
+    entryTime: LocalDateTime,
+    exitTime: Option[LocalDateTime],
+    durationMinutes: Option[Int],
+    calculatedFee: Option[BigDecimal],
+    status: PaymentStatus.PaymentStatus,
+    createdAt: LocalDateTime,
+    updatedAt: LocalDateTime
 )
 
 case class CalculateFeeRequest(
-  exitTime: LocalDateTime
+    exitTime: LocalDateTime
 )
 
 case class CalculateFeeResponse(
-  durationMinutes: Int,
-  fee: BigDecimal
+    durationMinutes: Int,
+    fee: BigDecimal
 )
 
 object DateTimeFormats {
