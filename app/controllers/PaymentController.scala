@@ -11,6 +11,7 @@ import dtos.{
   CreatePaymentRequest,
   PaymentResponse
 }
+import models.Receipt
 import mappers.PaymentMapper
 import services.PaymentService
 import dtos.DateTimeFormats._
@@ -31,6 +32,7 @@ class PaymentController @Inject() (
     Json.writes[PaymentResponse]
   implicit val calculateFeeResponseWrites: OWrites[CalculateFeeResponse] =
     Json.writes[CalculateFeeResponse]
+  implicit val receiptWrites: OWrites[Receipt] = Json.writes[Receipt]
 
   def createPayment: Action[JsValue] = Action.async(parse.json) { request =>
     request.body
@@ -103,15 +105,35 @@ class PaymentController @Inject() (
   }
 
   def refundPayment(id: Long): Action[JsValue] = Action.async(parse.json) {
-    request =>
-      Future.successful(
-        Ok(Json.obj("message" -> "refundPayment not yet implemented"))
-      )
+    _ =>
+      paymentService.refundPayment(id).map {
+        case Right(payment) => Ok(Json.toJson(PaymentMapper.toResponse(payment)))
+        case Left("not_found") =>
+          NotFound(Json.obj("error" -> s"Payment with id $id not found"))
+        case Left("not_completed") =>
+          BadRequest(
+            Json.obj("error" -> "Only completed payments can be refunded")
+          )
+        case Left("already_refunded") =>
+          BadRequest(Json.obj("error" -> "Payment has already been refunded"))
+        case Left(_) =>
+          InternalServerError(Json.obj("error" -> "Unable to refund payment"))
+      }
   }
 
   def getReceipt(id: Long): Action[AnyContent] = Action.async {
-    Future.successful(
-      Ok(Json.obj("message" -> "getReceipt not yet implemented"))
-    )
+    paymentService.getReceipt(id).map {
+      case Right(receipt) => Ok(Json.toJson(receipt))
+      case Left("not_found") =>
+        NotFound(Json.obj("error" -> s"Payment with id $id not found"))
+      case Left("receipt_unavailable") =>
+        BadRequest(
+          Json.obj(
+            "error" -> "Receipt is available only after the payment is completed"
+          )
+        )
+      case Left(_) =>
+        InternalServerError(Json.obj("error" -> "Unable to load receipt"))
+    }
   }
 }

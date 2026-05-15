@@ -1,52 +1,87 @@
 # Scala Parking Payment Service
 
-A Play Framework service for managing parking payments, fees, and receipts.
+Lightweight Play Framework microservice that manages parking payments, fee calculations and receipts.
 
-## Current Status
+## Overview
 
-The project is in an early but working state.
+This repository implements a simple parking payment API using Play Framework and Slick. Core responsibilities include:
 
-- The codebase compiles successfully with `sbt compile`.
-- The test suite passes with `sbt test`.
-- The main payment creation flow is wired through controller, service, mapper, and repository layers.
-- Routes are defined for health and payment-related endpoints.
-- Several payment endpoints still return placeholder responses and are not fully implemented yet.
-- Database and Play configuration are present for local development with MySQL.
+- Accepting payment requests and persisting payment records
+- Calculating parking fees
+- Processing refunds and generating receipts
+- Providing a health endpoint for readiness checks
 
-## Tech Stack
+## Features
 
-- Scala 2.13.18
-- Play Framework 2.9.1
-- Slick for persistence
-- MySQL 8
-- ScalaTest for testing
+- REST endpoints for create/calculate/process/refund/receipt
+- Layered architecture: controllers → services → repositories → tables
+- Slick-based persistence with database evolutions
+- Unit tests with ScalaTest
 
-## Implemented API Routes
+## Tech stack
 
-- `GET /api/health`
-- `POST /api/payments`
-- `POST /api/payments/calculate`
-- `GET /api/payments/:id`
-- `POST /api/payments/:id/process`
-- `POST /api/payments/:id/refund`
-- `GET /api/payments/:id/receipt`
+- Scala 2.13
+- Play Framework 2.9
+- Slick
+- MySQL (or compatible RDBMS)
+- sbt build tool
 
-## Local Setup
+## Prerequisites
 
-1. Make sure Java 17 and SBT are installed.
-2. Start MySQL locally.
-3. Update `conf/application.conf` if your database credentials differ from the default local values.
-4. Run the application with `sbt run`.
+- Java 17
+- sbt (1.8+ recommended)
+- A running MySQL instance (or set JDBC URL to another DB)
 
-## Configuration
+## Quickstart (local)
 
-- Application port: `9000`
-- Default database: `scala-parking-payment-service`
-- Evolutions: enabled for the default database
+1. Configure your DB in [conf/application.conf](conf/application.conf#L1).
+2. Run database evolutions (Play will apply them automatically on start unless disabled).
+3. Start the service:
 
-## Next Work
+```bash
+sbt run
+```
 
-- Implement the remaining payment endpoints.
-- Add fee calculation rules and validation.
-- Replace local-only secrets and database credentials with environment-based configuration.
-- Add and expand integration tests around payment flows.
+The app listens on port 9000 by default.
+
+## API (implemented routes)
+
+- `GET /api/health` — service health
+- `POST /api/payments` — create a payment
+- `POST /api/payments/calculate` — calculate fee for a request
+- `GET /api/payments/:id` — fetch payment by id
+- `POST /api/payments/:id/process` — mark payment processed
+- `POST /api/payments/:id/refund` — issue a refund
+- `GET /api/payments/:id/receipt` — fetch receipt
+
+See the `app/controllers/PaymentController.scala` for request/response details.
+
+## Development
+
+- Compile: `sbt compile`
+- Run tests: `sbt test`
+- Play console / dev mode: `sbt run` (hot reload enabled)
+
+## Contributing
+
+1. Fork the repo and create a feature branch.
+2. Add tests for new behavior.
+3. Open a PR with a clear description of the change.
+
+## Where to look in the codebase
+
+- Controller: `app/controllers/PaymentController.scala` ([app/controllers/PaymentController.scala](app/controllers/PaymentController.scala#L1))
+- Service: `app/services/PaymentService.scala` ([app/services/PaymentService.scala](app/services/PaymentService.scala#L1))
+- Repository / Table: `app/repositories/PaymentRepository.scala`, `app/tables/PaymentTable.scala`
+- DTOs / Mappers: `app/dtos/PaymentDTO.scala`, `app/mappers/PaymentMapper.scala`
+- Fee logic: `app/utils/calculateParkingFee.scala`
+
+## Next steps / TODO
+
+- Finish remaining endpoint implementations and validations
+- Add integration tests that run against a real DB (Testcontainers)
+- Externalize secrets and DB config for production deployments
+
+---
+
+If you want, I can also add a minimal example `curl` request for creating a payment or update the routes documentation with sample JSON payloads.

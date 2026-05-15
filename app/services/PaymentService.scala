@@ -5,7 +5,7 @@ import repositories.PaymentRepository
 import scala.concurrent.ExecutionContext
 import java.time.LocalDateTime
 import scala.concurrent.Future
-import models.Payment
+import models.{Payment, PaymentStatus, Receipt}
 import dtos.CalculateFeeResponse
 import utils.calculateParkingFee
 
@@ -71,5 +71,53 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
 
   def getPaymentDetails(id: Long): Future[Option[Payment]] =
     paymentRepository.findById(id)
+
+  def refundPayment(id: Long): Future[Either[String, Payment]] = {
+    paymentRepository.findById(id).flatMap {
+      case None => Future.successful(Left("not_found"))
+      case Some(payment) =>
+        payment.status match {
+          case PaymentStatus.PENDING =>
+            Future.successful(Left("not_completed"))
+          case PaymentStatus.REFUNDED =>
+            Future.successful(Left("already_refunded"))
+          case PaymentStatus.COMPLETED =>
+            paymentRepository
+              .update(payment.copy(status = PaymentStatus.REFUNDED))
+              .flatMap {
+                case 1 =>
+                  paymentRepository.findById(id).map {
+                    case Some(updatedPayment) => Right(updatedPayment)
+                    case None                 => Left("not_found")
+                  }
+                case _ => Future.successful(Left("update_failed"))
+              }
+        }
+    }
+  }
+
+  def getReceipt(id: Long): Future[Either[String, Receipt]] = {
+    paymentRepository.findById(id).map {
+      case None => Left("not_found")
+      case Some(payment)
+          if payment.status == PaymentStatus.COMPLETED || payment.status == PaymentStatus.REFUNDED =>
+        (payment.exitTime, payment.durationMinutes, payment.calculatedFee) match {
+          case (Some(exitTime), Some(durationMinutes), Some(calculatedFee)) =>
+            Right(
+              Receipt(
+                id = payment.id,
+                paymentId = payment.id,
+                entryTime = payment.entryTime,
+                exitTime = exitTime,
+                durationMinutes = durationMinutes,
+                calculatedFee = calculatedFee,
+                createdAt = payment.createdAt
+              )
+            )
+          case _ => Left("receipt_unavailable")
+        }
+      case Some(_) => Left("receipt_unavailable")
+    }
+  }
 
 }
