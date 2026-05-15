@@ -95,9 +95,11 @@ class PaymentController @Inject() (
   }
 
   def getPaymentDetails(id: Long): Action[AnyContent] = Action.async {
-    Future.successful(
-      Ok(Json.obj("message" -> "getPaymentDetails not yet implemented"))
-    )
+    paymentService.getPaymentDetails(id).map {
+      case Some(payment) => Ok(Json.toJson(PaymentMapper.toResponse(payment)))
+      case None          =>
+        NotFound(Json.obj("error" -> s"Payment with id $id not found"))
+    }
   }
 
   def refundPayment(id: Long): Action[JsValue] = Action.async(parse.json) {

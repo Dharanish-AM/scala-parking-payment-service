@@ -69,4 +69,7 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
     }
   }
 
+  def getPaymentDetails(id: Long): Future[Option[Payment]] =
+    paymentRepository.findById(id)
+
 }

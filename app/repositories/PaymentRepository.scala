@@ -74,4 +74,5 @@ class PaymentRepository @Inject() (
         .update((PaymentStatus.COMPLETED, now))
     )
   }
+
 }
