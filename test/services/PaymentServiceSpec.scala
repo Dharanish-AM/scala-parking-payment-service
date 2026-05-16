@@ -31,7 +31,9 @@ class PaymentServiceSpec
       val payment = TestFixtures.payment(id = 1L, entryTime = entry)
 
       when(repo.findById(1L)).thenReturn(Future.successful(Some(payment)))
-      when(repo.update(org.mockito.ArgumentMatchers.any(classOf[models.Payment])))
+      when(
+        repo.update(org.mockito.ArgumentMatchers.any(classOf[models.Payment]))
+      )
         .thenReturn(Future.successful(1))
 
       whenReady(service.calculateFee(1L, exit)) { res =>
@@ -43,7 +45,9 @@ class PaymentServiceSpec
         }
       }
 
-      verify(repo).update(org.mockito.ArgumentMatchers.any(classOf[models.Payment]))
+      verify(repo).update(
+        org.mockito.ArgumentMatchers.any(classOf[models.Payment])
+      )
     }
 
     "return invalid_exit_time when exitTime <= entryTime" in {
@@ -94,13 +98,14 @@ class PaymentServiceSpec
       val payment = TestFixtures.payment(id = 32L, entryTime = entry)
 
       when(repo.findById(32L)).thenReturn(Future.successful(Some(payment)))
-      when(repo.update(org.mockito.ArgumentMatchers.any(classOf[models.Payment]))).thenReturn(Future.successful(0))
+      when(
+        repo.update(org.mockito.ArgumentMatchers.any(classOf[models.Payment]))
+      ).thenReturn(Future.successful(0))
 
       whenReady(service.calculateFee(32L, exit)) { res =>
         res mustBe Left("update_failed")
       }
     }
-
 
     // You can't recalculate the fee if the payment is already done!
     "return invalid_status when payment is already completed" in {
@@ -124,7 +129,8 @@ class PaymentServiceSpec
       val repo = mock[PaymentRepository]
       val service = new PaymentService(repo)
       val now = LocalDateTime.now()
-      val payment = TestFixtures.payment(id = 3L, status = PaymentStatus.COMPLETED)
+      val payment =
+        TestFixtures.payment(id = 3L, status = PaymentStatus.COMPLETED)
 
       when(repo.findById(3L)).thenReturn(Future.successful(Some(payment)))
 
@@ -159,7 +165,8 @@ class PaymentServiceSpec
       val repo = mock[PaymentRepository]
       val service = new PaymentService(repo)
       val now = LocalDateTime.now()
-      val payment = TestFixtures.payment(id = 4L, entryTime = now.minusMinutes(10))
+      val payment =
+        TestFixtures.payment(id = 4L, entryTime = now.minusMinutes(10))
 
       when(repo.completeIfFeeCalculated(4L)).thenReturn(Future.successful(0))
       when(repo.findById(4L)).thenReturn(Future.successful(Some(payment)))
@@ -258,11 +265,22 @@ class PaymentServiceSpec
       val repo = mock[PaymentRepository]
       val service = new PaymentService(repo)
       val now = LocalDateTime.now()
-      val p = TestFixtures.payment(id = 13L, status = PaymentStatus.COMPLETED, exitTime = Some(now), durationMinutes = Some(60), calculatedFee = Some(BigDecimal(20)))
+      val p = TestFixtures.payment(
+        id = 13L,
+        status = PaymentStatus.COMPLETED,
+        exitTime = Some(now),
+        durationMinutes = Some(60),
+        calculatedFee = Some(BigDecimal(20))
+      )
       val refunded = p.copy(status = PaymentStatus.REFUNDED)
 
-      when(repo.findById(13L)).thenReturn(Future.successful(Some(p)), Future.successful(Some(refunded)))
-      when(repo.update(org.mockito.ArgumentMatchers.any(classOf[models.Payment]))).thenReturn(Future.successful(1))
+      when(repo.findById(13L)).thenReturn(
+        Future.successful(Some(p)),
+        Future.successful(Some(refunded))
+      )
+      when(
+        repo.update(org.mockito.ArgumentMatchers.any(classOf[models.Payment]))
+      ).thenReturn(Future.successful(1))
 
       whenReady(service.refundPayment(13L)) { res =>
         res match {
@@ -276,10 +294,18 @@ class PaymentServiceSpec
       val repo = mock[PaymentRepository]
       val service = new PaymentService(repo)
       val now = LocalDateTime.now()
-      val p = TestFixtures.payment(id = 14L, status = PaymentStatus.COMPLETED, exitTime = Some(now), durationMinutes = Some(10), calculatedFee = Some(BigDecimal(5)))
+      val p = TestFixtures.payment(
+        id = 14L,
+        status = PaymentStatus.COMPLETED,
+        exitTime = Some(now),
+        durationMinutes = Some(10),
+        calculatedFee = Some(BigDecimal(5))
+      )
 
       when(repo.findById(14L)).thenReturn(Future.successful(Some(p)))
-      when(repo.update(org.mockito.ArgumentMatchers.any(classOf[models.Payment]))).thenReturn(Future.successful(0))
+      when(
+        repo.update(org.mockito.ArgumentMatchers.any(classOf[models.Payment]))
+      ).thenReturn(Future.successful(0))
 
       whenReady(service.refundPayment(14L)) { res =>
         res mustBe Left("update_failed")
@@ -315,7 +341,13 @@ class PaymentServiceSpec
     "return Left(\"receipt_unavailable\") when fields missing even if completed" in {
       val repo = mock[PaymentRepository]
       val service = new PaymentService(repo)
-      val p = TestFixtures.payment(id = 22L, status = PaymentStatus.COMPLETED, exitTime = None, durationMinutes = None, calculatedFee = None)
+      val p = TestFixtures.payment(
+        id = 22L,
+        status = PaymentStatus.COMPLETED,
+        exitTime = None,
+        durationMinutes = None,
+        calculatedFee = None
+      )
 
       when(repo.findById(22L)).thenReturn(Future.successful(Some(p)))
 
@@ -328,7 +360,13 @@ class PaymentServiceSpec
       val repo = mock[PaymentRepository]
       val service = new PaymentService(repo)
       val now = LocalDateTime.now()
-      val p = TestFixtures.payment(id = 23L, status = PaymentStatus.COMPLETED, exitTime = Some(now), durationMinutes = Some(45), calculatedFee = Some(BigDecimal(20)))
+      val p = TestFixtures.payment(
+        id = 23L,
+        status = PaymentStatus.COMPLETED,
+        exitTime = Some(now),
+        durationMinutes = Some(45),
+        calculatedFee = Some(BigDecimal(20))
+      )
 
       when(repo.findById(23L)).thenReturn(Future.successful(Some(p)))
 
@@ -346,7 +384,13 @@ class PaymentServiceSpec
       val repo = mock[PaymentRepository]
       val service = new PaymentService(repo)
       val now = LocalDateTime.now()
-      val p = TestFixtures.payment(id = 24L, status = PaymentStatus.REFUNDED, exitTime = Some(now), durationMinutes = Some(30), calculatedFee = Some(BigDecimal(10)))
+      val p = TestFixtures.payment(
+        id = 24L,
+        status = PaymentStatus.REFUNDED,
+        exitTime = Some(now),
+        durationMinutes = Some(30),
+        calculatedFee = Some(BigDecimal(10))
+      )
 
       when(repo.findById(24L)).thenReturn(Future.successful(Some(p)))
 
