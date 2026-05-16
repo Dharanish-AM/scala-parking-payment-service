@@ -9,31 +9,31 @@
     <style>
       :root {
         color-scheme: light;
-        --bg: #f4f7fb;
-        --bg-accent: rgba(15, 23, 42, 0.06);
-        --surface: rgba(255, 255, 255, 0.88);
+        --bg: #ffffff;
+        --bg-accent: rgba(0, 0, 0, 0.04);
+        --surface: rgba(255, 255, 255, 0.95);
         --surface-solid: #ffffff;
         --surface-elevated: #ffffff;
-        --border: rgba(15, 23, 42, 0.08);
-        --border-strong: rgba(15, 23, 42, 0.14);
-        --text: #0f172a;
-        --text-soft: #516075;
-        --muted: #6b7280;
-        --primary: #0f172a;
-        --primary-hover: #111c31;
+        --border: #e5e5e5;
+        --border-strong: #000000;
+        --text: #000000;
+        --text-soft: #404040;
+        --muted: #737373;
+        --primary: #000000;
+        --primary-hover: #171717;
         --primary-text: #ffffff;
-        --danger: #b42318;
-        --danger-bg: rgba(180, 35, 24, 0.08);
-        --success: #166534;
-        --success-bg: rgba(22, 101, 52, 0.08);
-        --warning: #92400e;
-        --warning-bg: rgba(146, 64, 14, 0.08);
-        --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 18px rgba(15, 23, 42, 0.04);
-        --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
-        --shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.14);
-        --radius-sm: 14px;
-        --radius-md: 18px;
-        --radius-lg: 24px;
+        --danger: #dc2626;
+        --danger-bg: #fee2e2;
+        --success: #16a34a;
+        --success-bg: #dcfce7;
+        --warning: #ea580c;
+        --warning-bg: #fed7aa;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.15);
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
         --space-1: 4px;
         --space-2: 8px;
         --space-3: 12px;
@@ -41,8 +41,10 @@
         --space-5: 20px;
         --space-6: 24px;
         --space-8: 32px;
-        --transition: 180ms ease;
+        --transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
       }
+
+      /* Unified White/Black Theme */
 
       * {
         box-sizing: border-box;
@@ -51,27 +53,18 @@
       html,
       body {
         min-height: 100%;
+        background: #ffffff;
       }
 
       body {
         margin: 0;
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         color: var(--text);
-        background:
-          radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 34%),
-          radial-gradient(circle at top right, rgba(15, 23, 42, 0.06), transparent 28%),
-          linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 90%, white 10%) 100%);
+        background: var(--bg);
       }
 
       body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        background-image: linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
-        background-size: 36px 36px;
-        opacity: 0.55;
-        mask-image: radial-gradient(circle at center, black 40%, transparent 86%);
+        display: none;
       }
 
       .app-shell {
@@ -80,10 +73,9 @@
         margin: 16px auto;
         padding: 24px;
         border: 1px solid var(--border);
-        border-radius: calc(var(--radius-lg) + 4px);
-        background: var(--surface);
-        box-shadow: var(--shadow-lg);
-        backdrop-filter: blur(18px);
+        border-radius: var(--radius-lg);
+        background: var(--surface-solid);
+        box-shadow: var(--shadow-sm);
       }
 
       .hero {
@@ -171,10 +163,8 @@
         padding: 20px;
         border: 1px solid var(--border);
         border-radius: var(--radius-md);
-        background: linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 96%, transparent 4%) 0%, color-mix(in srgb, var(--surface-solid) 92%, transparent 8%) 100%);
-        box-shadow: var(--shadow-sm);
-        overflow: hidden;
-        transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition), background var(--transition);
+        background: var(--surface-solid);
+        transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
       }
 
       .panel:hover {
@@ -187,7 +177,7 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), transparent 24%, transparent 76%, rgba(15, 23, 42, 0.04));
+        background: rgba(0, 0, 0, 0.02);
         opacity: 0;
         pointer-events: none;
         transition: opacity var(--transition);
@@ -423,6 +413,7 @@
         background: var(--bg-accent);
         color: var(--text-soft);
         font-size: 14px;
+        font-weight: 700;
       }
 
       .status-dot.success {
@@ -438,6 +429,21 @@
       .status-dot.failed {
         background: var(--danger-bg);
         color: var(--danger);
+      }
+
+      .toast .status-dot.success {
+        background: var(--success);
+        color: var(--success-bg);
+      }
+
+      .toast .status-dot.failed {
+        background: var(--danger);
+        color: var(--danger-bg);
+      }
+
+      .toast .status-dot.pending {
+        background: var(--warning);
+        color: var(--warning-bg);
       }
 
       .message {
@@ -484,28 +490,37 @@
         justify-content: flex-end;
       }
 
-      .badge.success,
-      .stat-value.success,
+      .badge.refunded,
+      .stat-value.refunded,
+      .status-chip.refunded {
+        background: var(--text);
+        color: var(--bg);
+        border-color: var(--text);
+        font-weight: 800;
+      }
+
+      .status-chip {
+        border-width: 2px;
+      }
+
       .status-chip.success {
-        background: var(--success-bg);
-        color: var(--success);
-        border-color: color-mix(in srgb, var(--success) 28%, transparent);
+        border-color: var(--text);
+        background: var(--text);
+        color: var(--bg);
       }
 
-      .badge.pending,
-      .stat-value.pending,
       .status-chip.pending {
-        background: var(--warning-bg);
-        color: var(--warning);
-        border-color: color-mix(in srgb, var(--warning) 28%, transparent);
+        border-color: var(--text);
+        background: transparent;
+        color: var(--text);
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       }
 
-      .badge.failed,
-      .stat-value.failed,
       .status-chip.failed {
-        background: var(--danger-bg);
-        color: var(--danger);
-        border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+        border-color: var(--text);
+        background: transparent;
+        text-decoration: line-through;
+        opacity: 0.6;
       }
 
       .stat-grid {
@@ -519,9 +534,8 @@
         gap: 10px;
         padding: 16px;
         border: 1px solid var(--border);
-        border-radius: 18px;
-        background: linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 96%, transparent 4%), color-mix(in srgb, var(--surface-solid) 90%, transparent 10%));
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
+        border-radius: 12px;
+        background: var(--surface-solid);
       }
 
       .stat-card.large {
@@ -548,7 +562,7 @@
         padding: 12px 14px;
         border-radius: 14px;
         border: 1px solid var(--border);
-        background: rgba(255, 255, 255, 0.4);
+        background: var(--bg-accent);
         font-size: 14px;
         font-weight: 700;
         word-break: break-word;
@@ -610,19 +624,36 @@
         border-radius: 16px;
         border: 1px solid var(--border);
         background: color-mix(in srgb, var(--surface-solid) 92%, transparent 8%);
-        transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+        cursor: pointer;
+        transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition), background var(--transition);
       }
 
       .shortcut-item:hover {
-        transform: translateY(-1px);
+        transform: translateY(-2px);
         border-color: var(--border-strong);
-        box-shadow: var(--shadow-sm);
+        background: var(--surface-solid);
+        box-shadow: var(--shadow-md);
       }
 
       .shortcut-name {
         font-size: 13px;
         font-weight: 700;
         color: var(--text);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .shortcut-name::after {
+        content: "→";
+        opacity: 0;
+        transform: translateX(-4px);
+        transition: opacity var(--transition), transform var(--transition);
+      }
+
+      .shortcut-item:hover .shortcut-name::after {
+        opacity: 1;
+        transform: translateX(0);
       }
 
       .shortcut-meta {
@@ -661,11 +692,42 @@
       }
 
       .toast.success {
-        border-color: color-mix(in srgb, var(--success) 28%, transparent);
+        background: var(--success-bg);
+        border-color: var(--success);
+      }
+
+      .toast.success .toast-title {
+        color: var(--success);
+      }
+
+      .toast.success .toast-copy {
+        color: color-mix(in srgb, var(--success) 80%, transparent);
       }
 
       .toast.error {
-        border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+        background: var(--danger-bg);
+        border-color: var(--danger);
+      }
+
+      .toast.error .toast-title {
+        color: var(--danger);
+      }
+
+      .toast.error .toast-copy {
+        color: color-mix(in srgb, var(--danger) 80%, transparent);
+      }
+
+      .toast.warning {
+        background: var(--warning-bg);
+        border-color: var(--warning);
+      }
+
+      .toast.warning .toast-title {
+        color: var(--warning);
+      }
+
+      .toast.warning .toast-copy {
+        color: color-mix(in srgb, var(--warning) 80%, transparent);
       }
 
       .toast-title {
@@ -724,6 +786,15 @@
         }
         100% {
           transform: translateX(35%);
+        }
+      }
+
+      @@keyframes pulse {
+        0%, 100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
         }
       }
 
@@ -883,8 +954,8 @@
           </div>
           <div class="panel-main">
             <div class="helper">
-              <span class="helper-icon">⌘</span>
-              <div><strong>Developer shortcut:</strong> keep a payment id selected, then use the buttons below to inspect or advance the session.</div>
+              <span class="helper-icon">💡</span>
+              <div><strong>Workflow tip:</strong> Enter a payment ID to enable the action buttons below for inspection or processing.</div>
             </div>
             <div class="action-row">
               <button id="detailsBtn" class="btn btn-secondary" type="button">Details</button>
@@ -929,7 +1000,7 @@
                 <div id="showExit" class="stat-value"><code>—</code></div>
               </div>
               <div class="stat-card">
-                <div class="stat-label"><span class="status-dot">min</span> Duration</div>
+                <div class="stat-label"><span class="status-dot">🕒</span> Duration</div>
                 <div id="showDuration" class="stat-value"><code>—</code></div>
               </div>
             </div>
@@ -950,6 +1021,9 @@
                 <span class="badge">Styled output</span>
                 <span class="badge">Scrollable</span>
               </div>
+              <button id="copyBtn" class="btn btn-secondary btn-icon" title="Copy JSON" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
             </div>
             <pre id="output" class="code-block" aria-live="polite" aria-atomic="true">{}</pre>
           </div>
@@ -965,15 +1039,15 @@
           </div>
           <div class="panel-main">
             <div class="shortcut-list">
-              <div class="shortcut-item">
+              <div class="shortcut-item" id="shortcutCreate">
                 <div class="shortcut-name">Create payment</div>
                 <div class="shortcut-meta">POST /api/payments</div>
               </div>
-              <div class="shortcut-item">
+              <div class="shortcut-item" id="shortcutCalc">
                 <div class="shortcut-name">Calculate fee</div>
                 <div class="shortcut-meta">POST /api/payments/:id/calculate</div>
               </div>
-              <div class="shortcut-item">
+              <div class="shortcut-item" id="shortcutActions">
                 <div class="shortcut-name">Details, process, receipt, refund</div>
                 <div class="shortcut-meta">GET or POST /api/payments/:id/*</div>
               </div>
@@ -1001,6 +1075,7 @@
       const showExit = document.getElementById('showExit');
       const showDuration = document.getElementById('showDuration');
       const toastStack = document.getElementById('toastStack');
+      const copyBtn = document.getElementById('copyBtn');
       const createBtn = document.getElementById('createBtn');
       const calcBtn = document.getElementById('calcBtn');
       const detailsBtn = document.getElementById('detailsBtn');
@@ -1012,7 +1087,13 @@
       const panelActions = document.getElementById('panelActions');
 
       const actionButtons = [createBtn, calcBtn, detailsBtn, processBtn, receiptBtn, refundBtn];
+      const contextButtons = [detailsBtn, processBtn, receiptBtn, refundBtn];
       const loadingPanels = [panelCreate, panelCalc, panelActions];
+
+      const updateActionButtons = () => {
+        const id = paymentId.value.trim();
+        contextButtons.forEach(btn => btn.disabled = !id);
+      };
 
       const setNow = (input) => {
         const value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -1049,13 +1130,23 @@
           statusBadge.classList.add('success');
         } else if (normalized.includes('pending')) {
           statusBadge.classList.add('pending');
+        } else if (normalized.includes('refund')) {
+          statusBadge.classList.add('refunded');
         } else if (normalized.includes('fail') || normalized.includes('error')) {
           statusBadge.classList.add('failed');
         }
       };
 
       const setStatValue = (node, value) => {
-        node.innerHTML = `<code>${value}</code>`;
+        node.innerHTML = `<code>${value ?? '—'}</code>`;
+      };
+
+      const formatDuration = (mins) => {
+        if (mins == null) return '—';
+        if (mins < 60) return `${mins} min`;
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        return `${h}h ${m}m`;
       };
 
       const renderPayment = (payload) => {
@@ -1063,18 +1154,32 @@
         if (payload.id !== undefined && payload.id !== null) paymentId.value = payload.id;
         if (payload.entryTime) entryTime.value = payload.entryTime.slice(0, 16);
         if (payload.exitTime) exitTime.value = payload.exitTime.slice(0, 16);
-        setStatValue(showId, payload.id ?? '—');
-        setStatValue(showStatus, payload.status ?? '—');
-        setStatValue(showFee, payload.calculatedFee ?? '—');
-        setStatValue(showEntry, display(payload.entryTime));
-        setStatValue(showExit, display(payload.exitTime));
-        setStatValue(showDuration, payload.durationMinutes != null ? `${payload.durationMinutes} min` : '—');
-        setStatus(payload.status);
+
+        if (payload.id !== undefined) setStatValue(showId, payload.id);
+        if (payload.status) {
+          setStatValue(showStatus, payload.status);
+          setStatus(payload.status);
+        }
+        if (payload.calculatedFee !== undefined) setStatValue(showFee, payload.calculatedFee);
+        else if (payload.fee !== undefined) setStatValue(showFee, payload.fee);
+
+        if (payload.entryTime) setStatValue(showEntry, display(payload.entryTime));
+        if (payload.exitTime) setStatValue(showExit, display(payload.exitTime));
+
+        const duration = payload.durationMinutes ?? payload.duration;
+        if (duration !== undefined) setStatValue(showDuration, formatDuration(duration));
+        updateActionButtons();
       };
 
-      const setResponse = (res, payload) => {
-        statusCode.textContent = `${res.status} ${res.statusText}`.trim();
+      const setResponse = (res, payload, action) => {
+        statusCode.textContent = action || `${res.status} ${res.statusText}`.trim();
         output.textContent = JSON.stringify(payload, null, 2);
+        
+        // Auto-scroll to response area for visibility
+        setTimeout(() => {
+          output.closest('.panel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          output.focus();
+        }, 100);
       };
 
       const setMessage = (node, message, kind) => {
@@ -1097,19 +1202,6 @@
 
         node.appendChild(icon);
         node.appendChild(body);
-      };
-
-      const setLoading = (active, label) => {
-        actionButtons.forEach((button) => {
-          button.disabled = active;
-          if (active) {
-            if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;
-            if (button === active && label) button.textContent = label;
-          } else if (button.dataset.originalLabel) {
-            button.textContent = button.dataset.originalLabel;
-          }
-        });
-        loadingPanels.forEach((panel) => panel.classList.toggle('is-loading', active));
       };
 
       const showToast = (title, message, kind) => {
@@ -1150,25 +1242,68 @@
         requestAnimationFrame(() => node.focus());
       };
 
-      const withLoading = async (button, label, handler) => {
+      copyBtn.addEventListener('click', () => {
+        const text = output.textContent;
+        if (!text || text === '{}') return;
+        navigator.clipboard.writeText(text).then(() => {
+          const originalSvg = copyBtn.innerHTML;
+          copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+          copyBtn.classList.add('btn-primary');
+          showToast('Copied to clipboard', 'The JSON response has been copied.', 'success');
+          setTimeout(() => {
+            copyBtn.innerHTML = originalSvg;
+            copyBtn.classList.remove('btn-primary');
+          }, 2000);
+        });
+      });
+
+      const withLoading = async (button, label, handler, targetPanel) => {
         const originalLabel = button.textContent;
         button.disabled = true;
         button.textContent = label;
-        loadingPanels.forEach((panel) => panel.classList.add('is-loading'));
+        const panels = targetPanel ? [targetPanel] : loadingPanels;
+        panels.forEach((panel) => panel.classList.add('is-loading'));
         try {
           return await handler();
         } finally {
           button.disabled = false;
           button.textContent = originalLabel;
-          loadingPanels.forEach((panel) => panel.classList.remove('is-loading'));
+          panels.forEach((panel) => panel.classList.remove('is-loading'));
         }
       };
 
       document.getElementById('setEntryNow').addEventListener('click', () => setNow(entryTime));
       document.getElementById('setExitNow').addEventListener('click', () => setNow(exitTime));
 
+      paymentId.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') detailsBtn.click();
+      });
+
+      // Clear error states when user types
+      [entryTime, exitTime, paymentId].forEach(input => {
+        input.addEventListener('input', () => {
+          input.removeAttribute('aria-invalid');
+          if (input === paymentId) updateActionButtons();
+        });
+      });
+
+      // Shortcuts
+      document.getElementById('shortcutCreate').addEventListener('click', () => {
+        panelCreate.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        entryTime.focus();
+      });
+      document.getElementById('shortcutCalc').addEventListener('click', () => {
+        panelCalc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        paymentId.focus();
+      });
+      document.getElementById('shortcutActions').addEventListener('click', () => {
+        panelActions.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        paymentId.focus();
+      });
+
       setNow(entryTime);
       setNow(exitTime);
+      updateActionButtons();
 
       createBtn.addEventListener('click', async () => {
         await withLoading(createBtn, 'Creating...', async () => {
@@ -1188,7 +1323,7 @@
             body: JSON.stringify({ entryTime: toIso(entryTime.value) })
           });
           const payload = await parseJson(res);
-          setResponse(res, payload);
+          setResponse(res, payload, 'POST /api/payments');
 
           if (!res.ok) {
             const message = payload.message || payload.error || 'Unable to create payment.';
@@ -1200,8 +1335,9 @@
 
           setMessage(createMsg, 'Payment created successfully.', 'success');
           renderPayment(payload);
+          paymentId.focus();
           showToast('Payment created', `Payment ${payload.id ?? ''} is ready for fee calculation.`, 'success');
-        });
+        }, panelCreate);
       });
 
       calcBtn.addEventListener('click', async () => {
@@ -1232,7 +1368,7 @@
             body: JSON.stringify({ exitTime: toIso(exitTime.value) })
           });
           const payload = await parseJson(res);
-          setResponse(res, payload);
+          setResponse(res, payload, `POST /api/payments/${id}/calculate`);
 
           if (!res.ok) {
             const message = payload.message || payload.error || 'Unable to calculate fee.';
@@ -1242,18 +1378,12 @@
           }
 
           setMessage(calcMsg, 'Fee calculated successfully.', 'success');
-          if (payload.calculatedFee !== undefined) setStatValue(showFee, payload.calculatedFee);
-          else if (payload.fee !== undefined) setStatValue(showFee, payload.fee);
-          if (payload.durationMinutes !== undefined) setStatValue(showDuration, `${payload.durationMinutes} min`);
-          if (payload.status) setStatValue(showStatus, payload.status);
-          if (payload.exitTime) setStatValue(showExit, display(payload.exitTime));
-          if (payload.id !== undefined && payload.id !== null) setStatValue(showId, payload.id);
           renderPayment(payload);
           showToast('Fee calculated', `Payment ${payload.id ?? id} was updated with the latest exit time.`, 'success');
-        });
+        }, panelCalc);
       });
 
-      const callIdAction = async (path, method, body, button, successTitle) => {
+      const callIdAction = async (path, method, body, button, successTitle, panel) => {
         await withLoading(button, 'Working...', async () => {
           const id = paymentId.value;
           if (!id) {
@@ -1263,13 +1393,14 @@
             return;
           }
 
-          const res = await fetch(path.replace(':id', id), {
+          const actualPath = path.replace(':id', id);
+          const res = await fetch(actualPath, {
             method,
             headers: body ? { 'Content-Type': 'application/json' } : undefined,
             body: body ? JSON.stringify(body) : undefined
           });
           const payload = await parseJson(res);
-          setResponse(res, payload);
+          setResponse(res, payload, `${method} ${actualPath}`);
 
           if (!res.ok) {
             const message = payload.message || payload.error || 'Request failed.';
@@ -1277,18 +1408,28 @@
             return;
           }
 
-          if (payload && typeof payload === 'object' && payload.id !== undefined) {
+          if (payload && typeof payload === 'object' && (payload.id !== undefined || payload.paymentId !== undefined)) {
             renderPayment(payload);
           }
 
           showToast(successTitle, payload.message || `Payment ${id} completed the request.`, 'success');
-        });
+        }, panel);
       };
 
-      detailsBtn.addEventListener('click', () => callIdAction('/api/payments/:id', 'GET', undefined, detailsBtn, 'Details loaded'));
-      processBtn.addEventListener('click', () => callIdAction('/api/payments/:id/process', 'POST', {}, processBtn, 'Payment processed'));
-      receiptBtn.addEventListener('click', () => callIdAction('/api/payments/:id/receipt', 'GET', undefined, receiptBtn, 'Receipt loaded'));
-      refundBtn.addEventListener('click', () => callIdAction('/api/payments/:id/refund', 'POST', {}, refundBtn, 'Refund requested'));
+      detailsBtn.addEventListener('click', () => callIdAction('/api/payments/:id', 'GET', undefined, detailsBtn, 'Details loaded', panelActions));
+      processBtn.addEventListener('click', () => callIdAction('/api/payments/:id/process', 'POST', {}, processBtn, 'Payment processed', panelActions));
+      receiptBtn.addEventListener('click', () => callIdAction('/api/payments/:id/receipt', 'GET', undefined, receiptBtn, 'Receipt loaded', panelActions));
+      
+      refundBtn.addEventListener('click', () => {
+        const id = paymentId.value;
+        if (!id) {
+          showToast('Action blocked', 'Payment id is required.', 'error');
+          return;
+        }
+        if (confirm(`Are you sure you want to refund payment #${id}? This action is irreversible.`)) {
+          callIdAction('/api/payments/:id/refund', 'POST', {}, refundBtn, 'Refund requested', panelActions);
+        }
+      });
     </script>
   </body>
 </html>

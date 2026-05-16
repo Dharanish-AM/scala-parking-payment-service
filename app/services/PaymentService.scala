@@ -13,57 +13,76 @@ import utils.calculateParkingFee
 class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
     ec: ExecutionContext
 ) {
-  def createPayment(entryTime: LocalDateTime): Future[Payment] =
-    paymentRepository.create(entryTime)
+  def createPayment(
+      entryTime: LocalDateTime
+  ): Future[Either[String, Payment]] = {
+    if (entryTime.isAfter(LocalDateTime.now().plusMinutes(1))) {
+      Future.successful(Left("future_entry_time"))
+    } else {
+      paymentRepository.create(entryTime).map(Right(_))
+    }
+  }
 
   def calculateFee(
       id: Long,
       exitTime: LocalDateTime
   ): Future[Either[String, CalculateFeeResponse]] = {
     paymentRepository.findById(id).flatMap {
-      case Some(payment) =>
-        if (!exitTime.isAfter(payment.entryTime)) {
-          Future.successful(Left("invalid_exit_time"))
-        } else {
-          val durationMinutes = java.time.Duration
-            .between(payment.entryTime, exitTime)
-            .toMinutes
-            .toInt
+        case Some(payment) if payment.status != PaymentStatus.PENDING =>
+          Future.successful(Left("invalid_status"))
+        case Some(payment) =>
+          if (!exitTime.isAfter(payment.entryTime)) {
+            Future.successful(Left("invalid_exit_time"))
+          } else {
+            val durationMinutes = java.time.Duration
+              .between(payment.entryTime, exitTime)
+              .toMinutes
+              .toInt
 
-          val fee = calculateParkingFee.calculateParkingFee(durationMinutes)
-          val updatedPayment = payment.copy(
-            exitTime = Some(exitTime),
-            durationMinutes = Some(durationMinutes),
-            calculatedFee = Some(fee)
-          )
-
-          paymentRepository.update(updatedPayment).map { _ =>
-            Right(
-              CalculateFeeResponse(durationMinutes = durationMinutes, fee = fee)
+            val fee = calculateParkingFee.calculateParkingFee(durationMinutes)
+            val updatedPayment = payment.copy(
+              exitTime = Some(exitTime),
+              durationMinutes = Some(durationMinutes),
+              calculatedFee = Some(fee)
             )
+
+            paymentRepository.update(updatedPayment).map {
+              case 1 =>
+                Right(
+                  CalculateFeeResponse(
+                    durationMinutes = durationMinutes,
+                    fee = fee
+                  )
+                )
+              case _ => Left("update_failed")
+            }
           }
-        }
-      case None => Future.successful(Left("not_found"))
-    }
+        case None => Future.successful(Left("not_found"))
+      }
   }
 
   def processPayment(id: Long): Future[Either[String, Payment]] = {
-
-    paymentRepository.completeIfFeeCalculated(id).flatMap {
-      case 1 =>
-
-        paymentRepository.findById(id).map {
-          case Some(p) => Right(p)
-          case None    => Left("not_found")
-        }
-      case 0 =>
-
-        paymentRepository.findById(id).map {
-          case None          => Left("not_found")
-          case Some(payment) =>
-            payment.calculatedFee match {
-              case None    => Left("fee_not_calculated")
-              case Some(_) => Left("update_failed")
+    paymentRepository.findById(id).flatMap {
+      case None => Future.successful(Left("not_found"))
+      case Some(payment) if payment.status == PaymentStatus.COMPLETED =>
+        Future.successful(Right(payment)) // Already completed, return success
+      case Some(payment) if payment.status == PaymentStatus.REFUNDED =>
+        Future.successful(Left("already_refunded"))
+      case Some(_) =>
+        paymentRepository.completeIfFeeCalculated(id).flatMap {
+          case 1 =>
+            paymentRepository.findById(id).map {
+              case Some(p) => Right(p)
+              case None    => Left("not_found")
+            }
+          case 0 =>
+            paymentRepository.findById(id).map {
+              case None => Left("not_found")
+              case Some(p) =>
+                p.calculatedFee match {
+                  case None    => Left("fee_not_calculated")
+                  case Some(_) => Left("update_failed")
+                }
             }
         }
     }
@@ -119,5 +138,4 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
       case Some(_) => Left("receipt_unavailable")
     }
   }
-
 }

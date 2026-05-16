@@ -5,6 +5,7 @@ object calculateParkingFee {
     val hourlyRate = BigDecimal(20)
     val dailyCap = BigDecimal(200)
 
+    require(durationMinutes >= 0, "durationMinutes cannot be negative")
     if (durationMinutes <= 15) {
       BigDecimal(0)
     } else {

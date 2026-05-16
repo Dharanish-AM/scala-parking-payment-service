@@ -44,8 +44,16 @@ class PaymentController @Inject() (
           ),
         createPaymentRequest =>
           paymentService.createPayment(createPaymentRequest.entryTime).map {
-            payment =>
+            case Right(payment) =>
               Created(Json.toJson(PaymentMapper.toResponse(payment)))
+            case Left("future_entry_time") =>
+              BadRequest(
+                Json.obj("error" -> "entryTime cannot be in the future")
+              )
+            case Left(_) =>
+              InternalServerError(
+                Json.obj("error" -> "Unable to create payment")
+              )
           }
       )
   }
@@ -65,6 +73,16 @@ class PaymentController @Inject() (
                 Ok(Json.toJson(response))
               case Left("not_found") =>
                 NotFound(Json.obj("error" -> s"Payment with id $id not found"))
+              case Left("invalid_status") =>
+                BadRequest(
+                  Json.obj(
+                    "error" -> "Fee can only be calculated for PENDING payments"
+                  )
+                )
+              case Left("future_exit_time") =>
+                BadRequest(
+                  Json.obj("error" -> "exitTime cannot be in the future")
+                )
               case Left("invalid_exit_time") =>
                 BadRequest(
                   Json.obj("error" -> "exitTime must be after entryTime")
@@ -104,26 +122,25 @@ class PaymentController @Inject() (
     }
   }
 
-  def refundPayment(id: Long): Action[JsValue] = Action.async(parse.json) {
-    _ =>
-      paymentService.refundPayment(id).map {
-        case Right(payment) => Ok(Json.toJson(PaymentMapper.toResponse(payment)))
-        case Left("not_found") =>
-          NotFound(Json.obj("error" -> s"Payment with id $id not found"))
-        case Left("not_completed") =>
-          BadRequest(
-            Json.obj("error" -> "Only completed payments can be refunded")
-          )
-        case Left("already_refunded") =>
-          BadRequest(Json.obj("error" -> "Payment has already been refunded"))
-        case Left(_) =>
-          InternalServerError(Json.obj("error" -> "Unable to refund payment"))
-      }
+  def refundPayment(id: Long): Action[JsValue] = Action.async(parse.json) { _ =>
+    paymentService.refundPayment(id).map {
+      case Right(payment) => Ok(Json.toJson(PaymentMapper.toResponse(payment)))
+      case Left("not_found") =>
+        NotFound(Json.obj("error" -> s"Payment with id $id not found"))
+      case Left("not_completed") =>
+        BadRequest(
+          Json.obj("error" -> "Only completed payments can be refunded")
+        )
+      case Left("already_refunded") =>
+        BadRequest(Json.obj("error" -> "Payment has already been refunded"))
+      case Left(_) =>
+        InternalServerError(Json.obj("error" -> "Unable to refund payment"))
+    }
   }
 
   def getReceipt(id: Long): Action[AnyContent] = Action.async {
     paymentService.getReceipt(id).map {
-      case Right(receipt) => Ok(Json.toJson(receipt))
+      case Right(receipt)    => Ok(Json.toJson(receipt))
       case Left("not_found") =>
         NotFound(Json.obj("error" -> s"Payment with id $id not found"))
       case Left("receipt_unavailable") =>

@@ -5,15 +5,18 @@ import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDateTime
+import java.sql.Timestamp
 
 import models.{Payment, PaymentStatus}
 import tables.PaymentTable
+
+import slick.jdbc.MySQLProfile
 
 @Singleton
 class PaymentRepository @Inject() (
     protected val dbConfigProvider: DatabaseConfigProvider
 )(implicit ec: ExecutionContext)
-    extends HasDatabaseConfigProvider[JdbcProfile] {
+    extends HasDatabaseConfigProvider[MySQLProfile] {
 
   import profile.api._
 
@@ -23,7 +26,14 @@ class PaymentRepository @Inject() (
       PaymentStatus.withName
     )
 
+  implicit val localDateTimeColumnType: BaseColumnType[LocalDateTime] =
+    MappedColumnType.base[LocalDateTime, Timestamp](
+      Timestamp.valueOf,
+      _.toLocalDateTime
+    )
+
   private val payments = TableQuery[PaymentTable]
+
   def create(entryTime: LocalDateTime): Future[Payment] = {
     val now = LocalDateTime.now()
 
@@ -64,15 +74,18 @@ class PaymentRepository @Inject() (
   }
 
   def completeIfFeeCalculated(id: Long): Future[Int] = {
-    val now = LocalDateTime.now()
-    db.run(
-      payments
-        .filter(p =>
-          p.id === id && p.calculatedFee.isDefined && p.status === PaymentStatus.PENDING
+    findById(id).flatMap {
+      case Some(payment)
+          if payment.calculatedFee.isDefined && payment.status == PaymentStatus.PENDING =>
+        update(
+          payment
+            .copy(status = PaymentStatus.COMPLETED, updatedAt = LocalDateTime.now())
         )
-        .map(p => (p.status, p.updatedAt))
-        .update((PaymentStatus.COMPLETED, now))
-    )
+      case _ => Future.successful(0)
+    }
   }
 
+  def ping(): Future[Unit] = {
+    db.run(sql"SELECT 1".as[Int]).map(_ => ())
+  }
 }
