@@ -90,6 +90,20 @@ class PaymentServiceSpec
       }
     }
 
+    "return future_exit_time when exitTime is in the future" in {
+      val repo = mock[PaymentRepository]
+      val service = new PaymentService(repo)
+      val entry = LocalDateTime.now().minusMinutes(30)
+      val exit = LocalDateTime.now().plusMinutes(1)
+      val payment = TestFixtures.payment(id = 33L, entryTime = entry)
+
+      when(repo.findById(33L)).thenReturn(Future.successful(Some(payment)))
+
+      whenReady(service.calculateFee(33L, exit)) { res =>
+        res mustBe Left("future_exit_time")
+      }
+    }
+
     "return update_failed when repo.update returns 0" in {
       val repo = mock[PaymentRepository]
       val service = new PaymentService(repo)

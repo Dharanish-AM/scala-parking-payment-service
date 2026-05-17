@@ -146,7 +146,7 @@ class PaymentController @Inject() (
       case Left("receipt_unavailable") =>
         BadRequest(
           Json.obj(
-            "error" -> "Receipt is available only after the payment is completed"
+            "error" -> "Receipt is available only for completed or refunded payments"
           )
         )
       case Left(_) =>

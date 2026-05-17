@@ -33,7 +33,15 @@ object DateTimeFormats {
   private val dtf: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
   implicit val localDateTimeReads: Reads[LocalDateTime] =
-    Reads.StringReads.map(s => LocalDateTime.parse(s, dtf))
+    Reads { json =>
+      json.validate[String].flatMap { s =>
+        scala.util.Try(LocalDateTime.parse(s, dtf)) match {
+          case scala.util.Success(dateTime) => JsSuccess(dateTime)
+          case scala.util.Failure(_)        =>
+            JsError("error.expected.datetime.iso_local_date_time")
+        }
+      }
+    }
 
   implicit val localDateTimeWrites: Writes[LocalDateTime] =
     Writes(dt => JsString(dtf.format(dt)))

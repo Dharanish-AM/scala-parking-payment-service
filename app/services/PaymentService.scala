@@ -16,7 +16,7 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
   def createPayment(
       entryTime: LocalDateTime
   ): Future[Either[String, Payment]] = {
-    if (entryTime.isAfter(LocalDateTime.now().plusMinutes(1))) {
+    if (entryTime.isAfter(LocalDateTime.now())) {
       Future.successful(Left("future_entry_time"))
     } else {
       paymentRepository.create(entryTime).map(Right(_))
@@ -31,7 +31,9 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
       case Some(payment) if payment.status != PaymentStatus.PENDING =>
         Future.successful(Left("invalid_status"))
       case Some(payment) =>
-        if (!exitTime.isAfter(payment.entryTime)) {
+        if (exitTime.isAfter(LocalDateTime.now())) {
+          Future.successful(Left("future_exit_time"))
+        } else if (!exitTime.isAfter(payment.entryTime)) {
           Future.successful(Left("invalid_exit_time"))
         } else {
           val durationMinutes = java.time.Duration
