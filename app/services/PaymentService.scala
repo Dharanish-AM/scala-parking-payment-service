@@ -31,7 +31,9 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
       case Some(payment) if payment.status != PaymentStatus.PENDING =>
         Future.successful(Left("invalid_status"))
       case Some(payment) =>
-        if (exitTime.isAfter(LocalDateTime.now())) {
+        // Allow up to 5 seconds tolerance for network latency and clock drift
+        val toleranceSeconds = 5L
+        if (exitTime.isAfter(LocalDateTime.now().plusSeconds(toleranceSeconds))) {
           Future.successful(Left("future_exit_time"))
         } else if (!exitTime.isAfter(payment.entryTime)) {
           Future.successful(Left("invalid_exit_time"))
