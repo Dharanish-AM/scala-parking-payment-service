@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 import scala.concurrent.Future
 import models.{Payment, PaymentStatus, Receipt}
 import dtos.CalculateFeeResponse
-import utils.calculateParkingFee
+import utils.ParkingFeeCalculator
 
 @Singleton
 class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
@@ -16,11 +16,7 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
   def createPayment(
       entryTime: LocalDateTime
   ): Future[Either[String, Payment]] = {
-    if (entryTime.isAfter(LocalDateTime.now())) {
-      Future.successful(Left("future_entry_time"))
-    } else {
-      paymentRepository.create(entryTime).map(Right(_))
-    }
+    paymentRepository.create(entryTime).map(Right(_))
   }
 
   def calculateFee(
@@ -31,11 +27,7 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
       case Some(payment) if payment.status != PaymentStatus.PENDING =>
         Future.successful(Left("invalid_status"))
       case Some(payment) =>
-        // Allow up to 5 seconds tolerance for network latency and clock drift
-        val toleranceSeconds = 5L
-        if (exitTime.isAfter(LocalDateTime.now().plusSeconds(toleranceSeconds))) {
-          Future.successful(Left("future_exit_time"))
-        } else if (!exitTime.isAfter(payment.entryTime)) {
+        if (!exitTime.isAfter(payment.entryTime)) {
           Future.successful(Left("invalid_exit_time"))
         } else {
           val durationMinutes = java.time.Duration
@@ -43,7 +35,7 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
             .toMinutes
             .toInt
 
-          val fee = calculateParkingFee.calculateParkingFee(durationMinutes)
+          val fee = ParkingFeeCalculator.calculateParkingFee(durationMinutes)
           val updatedPayment = payment.copy(
             exitTime = Some(exitTime),
             durationMinutes = Some(durationMinutes),

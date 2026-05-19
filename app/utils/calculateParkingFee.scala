@@ -1,6 +1,7 @@
 package utils
 
-object calculateParkingFee {
+object ParkingFeeCalculator {
+
   def calculateParkingFee(durationMinutes: Long): BigDecimal = {
     val hourlyRate = BigDecimal(20)
     val dailyCap = BigDecimal(200)

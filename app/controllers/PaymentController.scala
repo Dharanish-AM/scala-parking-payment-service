@@ -46,10 +46,6 @@ class PaymentController @Inject() (
           paymentService.createPayment(createPaymentRequest.entryTime).map {
             case Right(payment) =>
               Created(Json.toJson(PaymentMapper.toResponse(payment)))
-            case Left("future_entry_time") =>
-              BadRequest(
-                Json.obj("error" -> "entryTime cannot be in the future")
-              )
             case Left(_) =>
               InternalServerError(
                 Json.obj("error" -> "Unable to create payment")
@@ -78,10 +74,6 @@ class PaymentController @Inject() (
                   Json.obj(
                     "error" -> "Fee can only be calculated for PENDING payments"
                   )
-                )
-              case Left("future_exit_time") =>
-                BadRequest(
-                  Json.obj("error" -> "exitTime cannot be in the future")
                 )
               case Left("invalid_exit_time") =>
                 BadRequest(

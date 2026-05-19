@@ -90,7 +90,7 @@ class PaymentServiceSpec
       }
     }
 
-    "return future_exit_time when exitTime is in the future" in {
+    "accept future exitTime values" in {
       val repo = mock[PaymentRepository]
       val service = new PaymentService(repo)
       val entry = LocalDateTime.now().minusMinutes(30)
@@ -98,9 +98,17 @@ class PaymentServiceSpec
       val payment = TestFixtures.payment(id = 33L, entryTime = entry)
 
       when(repo.findById(33L)).thenReturn(Future.successful(Some(payment)))
+      when(
+        repo.update(org.mockito.ArgumentMatchers.any(classOf[models.Payment]))
+      ).thenReturn(Future.successful(1))
 
       whenReady(service.calculateFee(33L, exit)) { res =>
-        res mustBe Left("future_exit_time")
+        res match {
+          case Right(CalculateFeeResponse(durationMinutes, fee)) =>
+            durationMinutes must be > 0
+            fee must be >= BigDecimal(0)
+          case Left(err) => fail(s"expected Right, got Left($err)")
+        }
       }
     }
 
@@ -434,13 +442,16 @@ class PaymentServiceSpec
       }
     }
 
-    "createPayment returns Left(\"future_entry_time\") when entryTime is in future" in {
+    "createPayment accepts future entryTime values" in {
       val repo = mock[PaymentRepository]
       val service = new PaymentService(repo)
       val future = LocalDateTime.now().plusDays(1)
+      val created = TestFixtures.payment(id = 52L, entryTime = future)
+
+      when(repo.create(future)).thenReturn(Future.successful(created))
 
       whenReady(service.createPayment(future)) { res =>
-        res mustBe Left("future_entry_time")
+        res mustBe Right(created)
       }
     }
 

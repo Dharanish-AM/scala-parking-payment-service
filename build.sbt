@@ -18,6 +18,7 @@ lazy val root = (project in file("."))
 
       // Testing
       "org.scalatest" %% "scalatest" % "3.2.17" % Test,
+      "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test,
       "org.scalatestplus" %% "scalacheck-1-17" % "3.2.17.0" % Test,
       "org.mockito" %% "mockito-scala" % "1.17.12" % Test
     ),
