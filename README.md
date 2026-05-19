@@ -33,6 +33,7 @@ The service simulates a real-world parking management system used in malls, airp
 
 - **Language**: [Scala 2.13.18](https://www.scala-lang.org/)
 - **Framework**: [Play Framework 2.8.x](https://www.playframework.com/)
+ - **Framework**: [Play Framework 2.9.1](https://www.playframework.com/)
 - **Persistence**: [Slick 5.1.0](https://scala-slick.org/) (Functional Relational Mapping)
 - **Database**: [MySQL 8.0](https://www.mysql.com/)
 - **Testing**: [ScalaTest](https://www.scalatest.org/), [Mockito](https://site.mockito.org/)
@@ -65,6 +66,18 @@ test/               # Unit and integration tests
 - Java 8 or higher
 - [sbt](https://www.scala-sbt.org/)
 - MySQL 8.0
+
+### Database configuration
+
+This project uses MySQL by default and Play Evolutions are enabled (auto-apply).
+Default connection settings are in [conf/application.conf](conf/application.conf):
+
+```hocon
+slick.dbs.default.db.url = "jdbc:mysql://localhost:3306/scala-parking-payment-service"
+slick.dbs.default.db.user = "root"
+slick.dbs.default.db.password = "root"
+play.evolutions.db.default.autoApply = true
+```
 
 ### Database Setup
 
