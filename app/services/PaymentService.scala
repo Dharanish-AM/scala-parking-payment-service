@@ -73,7 +73,7 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
             }
           case 0 =>
             paymentRepository.findById(id).map {
-              case None    => Left("not_found")
+              case None => Left("not_found")
               case Some(p) =>
                 p.calculatedFee match {
                   case None    => Left("fee_not_calculated")
@@ -89,7 +89,7 @@ class PaymentService @Inject() (paymentRepository: PaymentRepository)(implicit
 
   def refundPayment(id: Long): Future[Either[String, Payment]] = {
     paymentRepository.findById(id).flatMap {
-      case None          => Future.successful(Left("not_found"))
+      case None => Future.successful(Left("not_found"))
       case Some(payment) =>
         payment.status match {
           case PaymentStatus.PENDING =>

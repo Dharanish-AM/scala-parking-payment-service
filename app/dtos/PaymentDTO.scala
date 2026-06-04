@@ -37,7 +37,7 @@ object DateTimeFormats {
       json.validate[String].flatMap { s =>
         scala.util.Try(LocalDateTime.parse(s, dtf)) match {
           case scala.util.Success(dateTime) => JsSuccess(dateTime)
-          case scala.util.Failure(_)        =>
+          case scala.util.Failure(_) =>
             JsError("error.expected.datetime.iso_local_date_time")
         }
       }

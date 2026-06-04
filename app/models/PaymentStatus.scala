@@ -3,9 +3,9 @@ package models
 import play.api.libs.json._
 
 object PaymentStatus extends Enumeration {
-  val PENDING = Value("PENDING")
+  val PENDING   = Value("PENDING")
   val COMPLETED = Value("COMPLETED")
-  val REFUNDED = Value("REFUNDED")
+  val REFUNDED  = Value("REFUNDED")
 
   type PaymentStatus = Value
 

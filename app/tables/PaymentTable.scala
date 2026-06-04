@@ -18,14 +18,14 @@ class PaymentTable(tag: Tag) extends Table[Payment](tag, "payments") {
       PaymentStatus.withName
     )
 
-  def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
-  def entryTime = column[LocalDateTime]("entry_time")
-  def exitTime = column[Option[LocalDateTime]]("exit_time")
+  def id              = column[Long]("id", O.PrimaryKey, O.AutoInc)
+  def entryTime       = column[LocalDateTime]("entry_time")
+  def exitTime        = column[Option[LocalDateTime]]("exit_time")
   def durationMinutes = column[Option[Int]]("duration_minutes")
-  def calculatedFee = column[Option[BigDecimal]]("calculated_fee")
-  def status = column[PaymentStatus.Value]("status")
-  def createdAt = column[LocalDateTime]("created_at")
-  def updatedAt = column[LocalDateTime]("updated_at")
+  def calculatedFee   = column[Option[BigDecimal]]("calculated_fee")
+  def status          = column[PaymentStatus.Value]("status")
+  def createdAt       = column[LocalDateTime]("created_at")
+  def updatedAt       = column[LocalDateTime]("updated_at")
 
   def * = (
     id,

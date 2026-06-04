@@ -5,12 +5,7 @@ import play.api.mvc._
 import play.api.libs.json._
 import scala.concurrent.{ExecutionContext, Future}
 
-import dtos.{
-  CalculateFeeRequest,
-  CalculateFeeResponse,
-  CreatePaymentRequest,
-  PaymentResponse
-}
+import dtos.{CalculateFeeRequest, CalculateFeeResponse, CreatePaymentRequest, PaymentResponse}
 import models.Receipt
 import mappers.PaymentMapper
 import services.PaymentService
@@ -54,37 +49,36 @@ class PaymentController @Inject() (
       )
   }
 
-  def calculateFee(id: Long): Action[JsValue] = Action.async(parse.json) {
-    request =>
-      request.body
-        .validate[CalculateFeeRequest]
-        .fold(
-          errors =>
-            Future.successful(
-              BadRequest(Json.obj("errors" -> JsError.toJson(errors)))
-            ),
-          calculateFeeRequest =>
-            paymentService.calculateFee(id, calculateFeeRequest.exitTime).map {
-              case Right(response) =>
-                Ok(Json.toJson(response))
-              case Left("not_found") =>
-                NotFound(Json.obj("error" -> s"Payment with id $id not found"))
-              case Left("invalid_status") =>
-                BadRequest(
-                  Json.obj(
-                    "error" -> "Fee can only be calculated for PENDING payments"
-                  )
+  def calculateFee(id: Long): Action[JsValue] = Action.async(parse.json) { request =>
+    request.body
+      .validate[CalculateFeeRequest]
+      .fold(
+        errors =>
+          Future.successful(
+            BadRequest(Json.obj("errors" -> JsError.toJson(errors)))
+          ),
+        calculateFeeRequest =>
+          paymentService.calculateFee(id, calculateFeeRequest.exitTime).map {
+            case Right(response) =>
+              Ok(Json.toJson(response))
+            case Left("not_found") =>
+              NotFound(Json.obj("error" -> s"Payment with id $id not found"))
+            case Left("invalid_status") =>
+              BadRequest(
+                Json.obj(
+                  "error" -> "Fee can only be calculated for PENDING payments"
                 )
-              case Left("invalid_exit_time") =>
-                BadRequest(
-                  Json.obj("error" -> "exitTime must be after entryTime")
-                )
-              case Left(_) =>
-                InternalServerError(
-                  Json.obj("error" -> "Unable to calculate fee")
-                )
-            }
-        )
+              )
+            case Left("invalid_exit_time") =>
+              BadRequest(
+                Json.obj("error" -> "exitTime must be after entryTime")
+              )
+            case Left(_) =>
+              InternalServerError(
+                Json.obj("error" -> "Unable to calculate fee")
+              )
+          }
+      )
   }
 
   def processPayment(id: Long): Action[AnyContent] = Action.async { request =>
@@ -109,7 +103,7 @@ class PaymentController @Inject() (
   def getPaymentDetails(id: Long): Action[AnyContent] = Action.async {
     paymentService.getPaymentDetails(id).map {
       case Some(payment) => Ok(Json.toJson(PaymentMapper.toResponse(payment)))
-      case None          =>
+      case None =>
         NotFound(Json.obj("error" -> s"Payment with id $id not found"))
     }
   }
@@ -132,7 +126,7 @@ class PaymentController @Inject() (
 
   def getReceipt(id: Long): Action[AnyContent] = Action.async {
     paymentService.getReceipt(id).map {
-      case Right(receipt)    => Ok(Json.toJson(receipt))
+      case Right(receipt) => Ok(Json.toJson(receipt))
       case Left("not_found") =>
         NotFound(Json.obj("error" -> s"Payment with id $id not found"))
       case Left("receipt_unavailable") =>

@@ -15,23 +15,25 @@ class HealthController @Inject() (
     ec: ExecutionContext
 ) extends AbstractController(cc) {
   def health: Action[AnyContent] = Action.async {
-    paymentRepository.ping().map { _ =>
-      Ok(
-        Json.obj(
-          "status" -> "OK",
-          "database" -> "UP",
-          "message" -> "Parking Payment Service is healthy"
-        )
-      )
-    }.recover {
-      case e: Exception =>
-        InternalServerError(
+    paymentRepository
+      .ping()
+      .map { _ =>
+        Ok(
           Json.obj(
-            "status" -> "ERROR",
-            "database" -> "DOWN",
-            "message" -> e.getMessage
+            "status"   -> "OK",
+            "database" -> "UP",
+            "message"  -> "Parking Payment Service is healthy"
           )
         )
-    }
+      }
+      .recover { case e: Exception =>
+        InternalServerError(
+          Json.obj(
+            "status"   -> "ERROR",
+            "database" -> "DOWN",
+            "message"  -> e.getMessage
+          )
+        )
+      }
   }
 }
