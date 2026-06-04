@@ -9,6 +9,19 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: scala-parking-payment-service
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     steps:
       - uses: actions/checkout@v4
 
@@ -34,6 +47,11 @@ jobs:
             ${{ runner.os }}-sbt-
 
       - name: Run sbt test
+        env:
+          JAVA_OPTS: >-
+            -Dslick.dbs.default.db.url=jdbc:mysql://127.0.0.1:3306/scala-parking-payment-service?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+            -Dslick.dbs.default.db.user=root
+            -Dslick.dbs.default.db.password=root
         run: sbt -no-colors test
 
       - name: Run scalafmt check
