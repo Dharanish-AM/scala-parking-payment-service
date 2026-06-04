@@ -18,6 +18,9 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      - name: Set up sbt
+        uses: sbt/setup-sbt@v1
+
       - name: Cache sbt and Ivy
         uses: actions/cache@v4
         with:
