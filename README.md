@@ -106,6 +106,22 @@ play.evolutions.db.default.autoApply = true
 
    The service will be available at `http://localhost:9000`.
 
+### Running with Docker
+
+Use Docker Compose to start the API and a MySQL 8 container together:
+
+```bash
+docker compose up --build
+```
+
+The API will be available at `http://localhost:9000`, and the database will run on `localhost:3306` with the default credentials from `docker-compose.yml`.
+
+To stop the stack and remove the database volume:
+
+```bash
+docker compose down -v
+```
+
 ---
 
 ## 🔌 API Endpoints

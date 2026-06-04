@@ -1,0 +1,37 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: parking-payment-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: scala-parking-payment-service
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: parking-payment-app
+    restart: unless-stopped
+    environment:
+      JAVA_OPTS: >-
+        -Dslick.dbs.default.db.url=jdbc:mysql://db:3306/scala-parking-payment-service?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+        -Dslick.dbs.default.db.user=root
+        -Dslick.dbs.default.db.password=root
+    ports:
+      - "9000:9000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mysql-data:
